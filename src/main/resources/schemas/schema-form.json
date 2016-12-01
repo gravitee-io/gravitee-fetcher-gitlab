@@ -1,0 +1,48 @@
+{
+  "type": "object",
+  "title": "gitlab",
+  "properties": {
+    "gitlabUrl": {
+      "title": "GitLab api url",
+      "description": "GitLab API url (e.g. https://www.gitlab.com/api/v3)",
+      "type": "string"
+    },
+    "namespace": {
+      "title": "Namespace",
+      "description": "Username and groupname",
+      "type": "string"
+    },
+    "project": {
+      "title": "Project",
+      "description": "Project name",
+      "type": "string"
+    },
+    "branchOrTag": {
+      "title": "Ref",
+      "description": "Branch name, tag or sha1 (e.g. master)",
+      "type": "string",
+      "default": "master"
+    },
+    "filepath": {
+      "title": "Filepath",
+      "description": "The path to the file to fetch (e.g. /docs/main/README.md)",
+      "type": "string"
+    },
+    "privateToken": {
+      "title": "Private or Personal Token",
+      "description": "See https://docs.gitlab.com/ce/api/#authentication",
+      "type": "string"
+    }
+  },
+  "required": [
+    "gitlabUrl",
+    "namespace",
+    "project",
+    "branchOrTag",
+    "filepath",
+    "privateToken"
+  ]
+}
+
+
+
