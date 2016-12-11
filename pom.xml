@@ -31,7 +31,7 @@
     <artifactId>gravitee-fetcher-gitlab</artifactId>
     <version>1.0.0-SNAPSHOT</version>
 
-    <name>Gravitee IO - Fetcher - Gitlab</name>
+    <name>Gravitee.io APIM - Fetcher - Gitlab</name>
 
     <properties>
         <gravitee-fetcher-api.version>1.0.0</gravitee-fetcher-api.version>
