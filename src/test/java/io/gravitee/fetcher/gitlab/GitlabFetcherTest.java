@@ -17,6 +17,7 @@ package io.gravitee.fetcher.gitlab;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.fetcher.api.FetcherException;
+import io.vertx.core.Vertx;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -53,6 +54,7 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        fetcher.setVertx(Vertx.vertx());
 
         InputStream fetch = fetcher.fetch();
 
@@ -72,6 +74,7 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        fetcher.setVertx(Vertx.vertx());
 
         InputStream fetch = fetcher.fetch();
         assertThat(fetch).isNull();
@@ -91,6 +94,7 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        fetcher.setVertx(Vertx.vertx());
 
         fetcher.fetch();
 
@@ -114,6 +118,7 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        fetcher.setVertx(Vertx.vertx());
 
         InputStream fetch = fetcher.fetch();
 
@@ -144,6 +149,7 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        fetcher.setVertx(Vertx.vertx());
 
         try {
             fetcher.fetch();

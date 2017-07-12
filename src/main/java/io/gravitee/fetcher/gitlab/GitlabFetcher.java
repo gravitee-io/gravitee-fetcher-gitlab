@@ -17,81 +17,200 @@ package io.gravitee.fetcher.gitlab;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherException;
-import org.asynchttpclient.*;
+import io.gravitee.fetcher.gitlab.vertx.VertxCompletableFuture;
+import io.vertx.core.Future;
+import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.*;
+import io.vertx.core.http.impl.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
 
 /**
+ * @author David BRASSELY (david.brassely at graviteesource.com)
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
 public class GitlabFetcher implements Fetcher{
 
-    private final Logger LOGGER = LoggerFactory.getLogger(GitlabFetcher.class);
+    private static final Logger logger = LoggerFactory.getLogger(GitlabFetcher.class);
+
+    private static final String HTTPS_SCHEME = "https";
+
     private GitlabFetcherConfiguration gitlabFetcherConfiguration;
-    private AsyncHttpClient asyncHttpClient;
-    private static final int GLOBAL_TIMEOUT = 10_000;
+
+    @Autowired
+    private Vertx vertx;
+
+    private static final int GLOBAL_TIMEOUT = 15_000;
 
     public GitlabFetcher(GitlabFetcherConfiguration gitlabFetcherConfiguration) {
         this.gitlabFetcherConfiguration = gitlabFetcherConfiguration;
-        this.asyncHttpClient = new DefaultAsyncHttpClient(
-                new DefaultAsyncHttpClientConfig.Builder()
-                        .setConnectTimeout(GLOBAL_TIMEOUT)
-                        .setReadTimeout(GLOBAL_TIMEOUT)
-                        .setRequestTimeout(GLOBAL_TIMEOUT)
-                        .setMaxConnections(10)
-                        .setMaxConnectionsPerHost(5)
-                        .setAcceptAnyCertificate(true)
-                        .build());
     }
 
     @Override
     public InputStream fetch() throws FetcherException {
+        try {
+            Buffer buffer = fetchContent().join();
+            if (buffer == null || buffer.length() == 0) {
+                logger.warn("Something goes wrong, Gitlab responds with a status 200 but the content is null.");
+                return null;
+            }
+
+            JsonNode jsonNode = new ObjectMapper().readTree(buffer.getBytes());
+            if (jsonNode != null) {
+                JsonNode content = jsonNode.get("content");
+                if (content != null) {
+                    String contentAsBase64 = content.asText();
+                    byte[] decodedContent = Base64.getDecoder().decode(contentAsBase64);
+                    return new ByteArrayInputStream(decodedContent);
+                }
+
+                return null;
+            }
+
+            return new ByteArrayInputStream(buffer.getBytes());
+        } catch (Exception ex) {
+            throw new FetcherException("Unable to fetch '" + gitlabFetcherConfiguration.getGitlabUrl() + "'", ex);
+        }
+    }
+
+    private CompletableFuture<Buffer> fetchContent() throws Exception {
+        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
+
+        String url = gitlabFetcherConfiguration.getGitlabUrl().trim()
+                + "/projects/"
+                + URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8")
+                + "/repository/files?file_path="
+                + gitlabFetcherConfiguration.getFilepath().trim()
+                + "&ref="
+                + ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
+                ? "master"
+                : gitlabFetcherConfiguration.getBranchOrTag().trim());
+
+        URI requestUri = URI.create(url);
+        boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
+
+        final HttpClientOptions options = new HttpClientOptions()
+                .setSsl(ssl)
+                .setTrustAll(true)
+                .setConnectTimeout(GLOBAL_TIMEOUT);
+
+        final HttpClient httpClient = vertx.createHttpClient(options);
+
+        httpClient.redirectHandler(resp -> {
+            try {
+                int statusCode = resp.statusCode();
+                String location = resp.getHeader(HttpHeaders.LOCATION);
+                if (location != null && (statusCode == 301 || statusCode == 302 || statusCode == 303 || statusCode == 307
+                        || statusCode == 308)) {
+                    HttpMethod m = resp.request().method();
+                    if (statusCode == 301 || statusCode == 302 || statusCode == 303) {
+                        m = HttpMethod.GET;
+                    }
+                    URI uri = HttpUtils.resolveURIReference(resp.request().absoluteURI(), location);
+                    boolean redirectSsl;
+                    int port = uri.getPort();
+                    String protocol = uri.getScheme();
+                    char chend = protocol.charAt(protocol.length() - 1);
+                    if (chend == 'p') {
+                        redirectSsl = false;
+                        if (port == -1) {
+                            port = 80;
+                        }
+                    } else if (chend == 's') {
+                        redirectSsl = true;
+                        if (port == -1) {
+                            port = 443;
+                        }
+                    } else {
+                        return null;
+                    }
+                    String requestURI = uri.getPath();
+                    if (uri.getQuery() != null) {
+                        requestURI += "?" + uri.getQuery();
+                    }
+
+                    RequestOptions requestOptions = new RequestOptions()
+                            .setHost(uri.getHost())
+                            .setPort(port)
+                            .setSsl(redirectSsl)
+                            .setURI(requestURI);
+
+                    return Future.succeededFuture(httpClient.request(m, requestOptions));
+                }
+                return null;
+            } catch (Exception e) {
+                return Future.failedFuture(e);
+            }
+        });
+
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
+                (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
         try {
-            String url = gitlabFetcherConfiguration.getGitlabUrl().trim()
-                    + "/projects/"
-                    + URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + "/" + gitlabFetcherConfiguration.getProject().trim(), "UTF-8")
-                    + "/repository/files?file_path="
-                    + gitlabFetcherConfiguration.getFilepath().trim()
-                    + "&ref="
-                    + ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
-                      ? "master"
-                      : gitlabFetcherConfiguration.getBranchOrTag().trim());
+            HttpClientRequest request = httpClient.request(
+                    HttpMethod.GET,
+                    port,
+                    requestUri.getHost(),
+                    requestUri.toString()
+            );
 
-            Response response = this.asyncHttpClient
-                    .prepareGet(url)
-                    .addHeader("PRIVATE-TOKEN", gitlabFetcherConfiguration.getPrivateToken())
-                    .execute()
-                    .get();
+            // Follow redirect since Gitlab may return a 3xx status code
+            request.setFollowRedirects(true);
 
-            if (response.getStatusCode() != 200) {
-                throw new FetcherException("Unable to fetch '" + url + "'. Status code: " + response.getStatusCode() + ". Message: " + response.getResponseBody(), null);
+            request.setTimeout(GLOBAL_TIMEOUT);
+
+            if (gitlabFetcherConfiguration.getPrivateToken() != null && !gitlabFetcherConfiguration.getPrivateToken().trim().isEmpty()) {
+                // Set GitLab token header
+                request.putHeader("PRIVATE-TOKEN", gitlabFetcherConfiguration.getPrivateToken());
             }
 
-            InputStream responseBodyAsStream = response.getResponseBodyAsStream();
-            if(responseBodyAsStream.available() != 0) {
-                JsonNode jsonNode = new ObjectMapper().readTree(responseBodyAsStream);
-                if (jsonNode != null) {
-                    JsonNode content = jsonNode.get("content");
-                    if (content != null) {
-                        String contentAsBase64 = content.asText();
-                        byte[] decodedContent = Base64.getDecoder().decode(contentAsBase64);
-                        return new ByteArrayInputStream(decodedContent);
-                    }
+            request.handler(response -> {
+                if (response.statusCode() == HttpStatusCode.OK_200) {
+                    response.bodyHandler(buffer -> {
+                        future.complete(buffer);
+
+                        // Close client
+                        httpClient.close();
+                    });
+                } else {
+                    future.completeExceptionally(new FetcherException("Unable to fetch '" + url + "'. Status code: " + response.statusCode() + ". Message: " + response.statusMessage(), null));
                 }
-            }
-            LOGGER.warn("Something goes wrong, Gitlab responds with a status 200 but the content is null.");
-            return null;
+            });
 
-        } catch (Exception e) {
-            throw new FetcherException("Unable to fetch", e);
+            request.exceptionHandler(event -> {
+                try {
+                    future.completeExceptionally(event);
+
+                    // Close client
+                    httpClient.close();
+                } catch (IllegalStateException ise) {
+                    // Do not take care about exception when closing client
+                }
+            });
+
+            request.end();
+        } catch (Exception ex) {
+            logger.error("Unable to fetch content using HTTP", ex);
+            future.completeExceptionally(ex);
         }
+
+        return future;
+    }
+
+    public void setVertx(Vertx vertx) {
+        this.vertx = vertx;
     }
 }
