@@ -4,7 +4,7 @@
   "properties": {
     "gitlabUrl": {
       "title": "GitLab api url",
-      "description": "GitLab API url (e.g. https://www.gitlab.com/api/v3)",
+      "description": "GitLab API url (e.g. https://gitlab.com/api/v3)",
       "type": "string"
     },
     "namespace": {
