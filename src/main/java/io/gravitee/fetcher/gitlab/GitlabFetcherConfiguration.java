@@ -35,6 +35,7 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration {
 
     private String privateToken;
 
+
     public String getGitlabUrl() {
         return gitlabUrl;
     }

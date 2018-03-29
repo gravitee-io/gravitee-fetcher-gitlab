@@ -61,6 +61,14 @@ public class GitlabFetcher implements Fetcher{
 
     @Override
     public InputStream fetch() throws FetcherException {
+        if (gitlabFetcherConfiguration.getBranchOrTag() == null
+                || gitlabFetcherConfiguration.getGitlabUrl() == null
+                || gitlabFetcherConfiguration.getFilepath() == null
+                || gitlabFetcherConfiguration.getNamespace() == null
+                || gitlabFetcherConfiguration.getProject() == null) {
+            throw new FetcherException("Some configuration attributes are null", null);
+        }
+
         try {
             Buffer buffer = fetchContent().join();
             if (buffer == null || buffer.length() == 0) {
@@ -82,7 +90,8 @@ public class GitlabFetcher implements Fetcher{
 
             return new ByteArrayInputStream(buffer.getBytes());
         } catch (Exception ex) {
-            throw new FetcherException("Unable to fetch '" + gitlabFetcherConfiguration.getGitlabUrl() + "'", ex);
+            logger.error(ex.getMessage(), ex);
+            throw new FetcherException("Unable to fetch Gitlab content (" + ex.getMessage() + ")", ex);
         }
     }
 
