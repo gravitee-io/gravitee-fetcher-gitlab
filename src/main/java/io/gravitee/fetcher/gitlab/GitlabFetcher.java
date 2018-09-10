@@ -32,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Base64;
@@ -95,18 +96,33 @@ public class GitlabFetcher implements Fetcher{
         }
     }
 
+    private String getEncodedRequestUrl() throws UnsupportedEncodingException {
+        String ref = ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
+                        ? "master"
+                        : gitlabFetcherConfiguration.getBranchOrTag().trim());
+
+        String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
+
+        switch (gitlabFetcherConfiguration.getApiVersion()) {
+            case V4:
+                return gitlabFetcherConfiguration.getGitlabUrl().trim()
+                        + "/projects/" + encodedProject
+                        + "/repository/files/" + URLEncoder.encode(gitlabFetcherConfiguration.getFilepath().trim(), "UTF-8")
+                        + "?ref=" + ref;
+            default:
+                return gitlabFetcherConfiguration.getGitlabUrl().trim()
+                        + "/projects/" + encodedProject
+                        + "/repository/files"
+                        + "?file_path=" + gitlabFetcherConfiguration.getFilepath().trim()
+                        + "&ref=" + ref;
+        }
+
+    }
+
     private CompletableFuture<Buffer> fetchContent() throws Exception {
         CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
 
-        String url = gitlabFetcherConfiguration.getGitlabUrl().trim()
-                + "/projects/"
-                + URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8")
-                + "/repository/files?file_path="
-                + gitlabFetcherConfiguration.getFilepath().trim()
-                + "&ref="
-                + ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
-                ? "master"
-                : gitlabFetcherConfiguration.getBranchOrTag().trim());
+        String url = getEncodedRequestUrl();
 
         URI requestUri = URI.create(url);
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());

@@ -2,6 +2,13 @@
   "type": "object",
   "title": "gitlab",
   "properties": {
+    "apiVersion" : {
+      "title": "Gitlab API Version",
+      "description": "The api version to use.",
+      "type" : "string",
+      "default": "V3",
+      "enum" : [ "V3", "V4" ]
+    },
     "gitlabUrl": {
       "title": "GitLab api url",
       "description": "GitLab API url (e.g. https://gitlab.com/api/v3)",

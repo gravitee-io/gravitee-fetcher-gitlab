@@ -17,6 +17,8 @@ package io.gravitee.fetcher.gitlab;
 
 import io.gravitee.fetcher.api.FetcherConfiguration;
 
+import static io.gravitee.fetcher.gitlab.ApiVersion.V3;
+
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
@@ -34,6 +36,8 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration {
     private String filepath;
 
     private String privateToken;
+
+    private ApiVersion apiVersion = V3;
 
 
     public String getGitlabUrl() {
@@ -82,5 +86,13 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration {
 
     public void setPrivateToken(String privateToken) {
         this.privateToken = privateToken;
+    }
+
+    public ApiVersion getApiVersion() {
+        return apiVersion;
+    }
+
+    public void setApiVersion(ApiVersion apiVersion) {
+        this.apiVersion = apiVersion;
     }
 }
