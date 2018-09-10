@@ -130,6 +130,36 @@ public class GitlabFetcherTest {
         assertThat(decoded).isEqualTo(content);
     }
 
+    @Test
+    public void shouldFetchBase64ContentInV4() throws Exception {
+        String content = "Gravitee.io is awesome!";
+        String encoded = Base64.getEncoder().encodeToString(content.getBytes());
+
+        stubFor(get(urlEqualTo("/api/v4/projects/namespace%2Fproject/repository/files/%2Fpath%2Fto%2Ffile?ref=sha1"))
+                .willReturn(aResponse()
+                        .withStatus(200)
+                        .withBody("{\"content\": \""+encoded+"\"}")));
+        GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
+        config.setFilepath("/path/to/file");
+        config.setProject("project");
+        config.setNamespace("namespace");
+        config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v4");
+        config.setBranchOrTag("sha1");
+        config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V4);
+        GitlabFetcher fetcher = new GitlabFetcher(config);
+        fetcher.setVertx(Vertx.vertx());
+
+        InputStream fetch = fetcher.fetch();
+
+        assertThat(fetch).isNotNull();
+        int n = fetch.available();
+        byte[] bytes = new byte[n];
+        fetch.read(bytes, 0, n);
+        String decoded = new String(bytes, StandardCharsets.UTF_8);
+        assertThat(decoded).isEqualTo(content);
+    }
+
     @Test(expected = FetcherException.class)
     public void shouldThrowExceptionWhenStatusNot200() throws Exception {
         String content = "Gravitee.io is awesome!";
