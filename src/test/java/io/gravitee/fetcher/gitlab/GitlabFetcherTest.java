@@ -20,6 +20,7 @@ import io.gravitee.fetcher.api.FetcherException;
 import io.vertx.core.Vertx;
 import org.junit.Rule;
 import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -54,6 +55,7 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
         fetcher.setVertx(Vertx.vertx());
 
         InputStream fetch = fetcher.fetch();
@@ -74,6 +76,7 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
         fetcher.setVertx(Vertx.vertx());
 
         InputStream fetch = fetcher.fetch();
@@ -118,6 +121,7 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
         fetcher.setVertx(Vertx.vertx());
 
         InputStream fetch = fetcher.fetch();
@@ -148,6 +152,7 @@ public class GitlabFetcherTest {
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V4);
         GitlabFetcher fetcher = new GitlabFetcher(config);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
         fetcher.setVertx(Vertx.vertx());
 
         InputStream fetch = fetcher.fetch();

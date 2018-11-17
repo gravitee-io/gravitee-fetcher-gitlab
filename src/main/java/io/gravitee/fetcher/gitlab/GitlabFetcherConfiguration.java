@@ -27,6 +27,8 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration {
 
     private String gitlabUrl;
 
+    private boolean useSystemProxy;
+
     private String namespace;
 
     private String project;
@@ -94,5 +96,13 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration {
 
     public void setApiVersion(ApiVersion apiVersion) {
         this.apiVersion = apiVersion;
+    }
+
+    public boolean isUseSystemProxy() {
+        return useSystemProxy;
+    }
+
+    public void setUseSystemProxy(boolean useSystemProxy) {
+        this.useSystemProxy = useSystemProxy;
     }
 }
