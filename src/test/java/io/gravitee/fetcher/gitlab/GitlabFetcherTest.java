@@ -15,9 +15,11 @@
  */
 package io.gravitee.fetcher.gitlab;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.fetcher.api.FetcherException;
 import io.vertx.core.Vertx;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -35,15 +37,25 @@ import static org.assertj.core.api.Assertions.fail;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-
 public class GitlabFetcherTest {
 
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
+    private GitlabFetcher fetcher = new GitlabFetcher(null);
+
+    private Vertx vertx = Vertx.vertx();
+    private ObjectMapper mapper = new ObjectMapper();
+
+    @Before
+    public void init() {
+        ReflectionTestUtils.setField(fetcher, "vertx", vertx);
+        ReflectionTestUtils.setField(fetcher, "mapper", mapper);
+    }
+
     @Test
     public void shouldNotFetchWithoutContent() throws FetcherException {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
+        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files/%2Fpath%2Fto%2Ffile?ref=sha1"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("{\"key\": \"value\"}")));
@@ -54,18 +66,17 @@ public class GitlabFetcherTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
-        GitlabFetcher fetcher = new GitlabFetcher(config);
+        ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
-        fetcher.setVertx(Vertx.vertx());
 
-        InputStream fetch = fetcher.fetch();
+        InputStream fetch = fetcher.fetch().getContent();
 
         assertThat(fetch).isNull();
     }
 
     @Test
     public void shouldNotFetchEmptyBody() throws Exception {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
+        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files/%2Fpath%2Fto%2Ffile?ref=sha1"))
                 .willReturn(aResponse()
                         .withStatus(200)));
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
@@ -75,11 +86,10 @@ public class GitlabFetcherTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
-        GitlabFetcher fetcher = new GitlabFetcher(config);
+        ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
-        fetcher.setVertx(Vertx.vertx());
 
-        InputStream fetch = fetcher.fetch();
+        InputStream fetch = fetcher.fetch().getContent();
         assertThat(fetch).isNull();
     }
 
@@ -96,8 +106,7 @@ public class GitlabFetcherTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
-        GitlabFetcher fetcher = new GitlabFetcher(config);
-        fetcher.setVertx(Vertx.vertx());
+        ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
 
         fetcher.fetch();
 
@@ -109,7 +118,7 @@ public class GitlabFetcherTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
+        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files/%2Fpath%2Fto%2Ffile?ref=sha1"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("{\"content\": \""+encoded+"\"}")));
@@ -120,11 +129,10 @@ public class GitlabFetcherTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
-        GitlabFetcher fetcher = new GitlabFetcher(config);
+        ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
-        fetcher.setVertx(Vertx.vertx());
 
-        InputStream fetch = fetcher.fetch();
+        InputStream fetch = fetcher.fetch().getContent();
 
         assertThat(fetch).isNotNull();
         int n = fetch.available();
@@ -151,11 +159,10 @@ public class GitlabFetcherTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V4);
-        GitlabFetcher fetcher = new GitlabFetcher(config);
+        ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
-        fetcher.setVertx(Vertx.vertx());
 
-        InputStream fetch = fetcher.fetch();
+        InputStream fetch = fetcher.fetch().getContent();
 
         assertThat(fetch).isNotNull();
         int n = fetch.available();
@@ -183,8 +190,7 @@ public class GitlabFetcherTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
-        GitlabFetcher fetcher = new GitlabFetcher(config);
-        fetcher.setVertx(Vertx.vertx());
+        ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
 
         try {
             fetcher.fetch();
