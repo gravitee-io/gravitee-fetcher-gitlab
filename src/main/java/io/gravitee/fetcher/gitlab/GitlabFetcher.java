@@ -18,6 +18,7 @@ package io.gravitee.fetcher.gitlab;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.fetcher.api.Resource;
 import io.gravitee.fetcher.api.Fetcher;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.gitlab.vertx.VertxCompletableFuture;
@@ -34,11 +35,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.Base64;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -46,7 +47,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GitlabFetcher implements Fetcher{
+public class GitlabFetcher implements Fetcher {
 
     private static final Logger logger = LoggerFactory.getLogger(GitlabFetcher.class);
 
@@ -56,6 +57,9 @@ public class GitlabFetcher implements Fetcher{
 
     @Autowired
     private Vertx vertx;
+    @Autowired
+    private ObjectMapper mapper;
+
     @Value("${httpClient.timeout:10000}")
     private int httpClientTimeout;
     @Value("${httpClient.proxy.type:HTTP}")
@@ -84,38 +88,52 @@ public class GitlabFetcher implements Fetcher{
     }
 
     @Override
-    public InputStream fetch() throws FetcherException {
+    public Resource fetch() throws FetcherException {
+        checkRequiredFields();
+        try {
+            Buffer buffer = fetchContent().join();
+            final Resource resource = new Resource();
+            if (buffer == null || buffer.length() == 0) {
+                logger.warn("Something goes wrong, Gitlab responds with a status 200 but the content is empty.");
+            } else {
+                final JsonNode jsonNode = mapper.readTree(buffer.getBytes());
+                if (jsonNode != null) {
+                    final Map<String, Object> metadata = mapper.convertValue(jsonNode, Map.class);
+                    final Object content = metadata.remove("content");
+                    if (content != null) {
+                        byte[] decodedContent = Base64.getDecoder().decode(String.valueOf(content));
+                        resource.setContent(new ByteArrayInputStream(decodedContent));
+                    }
+                    metadata.put(EDIT_URL_PROPERTY_KEY, buildEditUrl());
+                    metadata.put(PROVIDER_NAME_PROPERTY_KEY, "GitLab");
+                    resource.setMetadata(metadata);
+                }
+            }
+            return resource;
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new FetcherException("Unable to fetch Gitlab content (" + ex.getMessage() + ")", ex);
+        }
+    }
+
+    private String buildEditUrl() throws FetcherException {
+        checkRequiredFields();
+        final String gitlabUrl = gitlabFetcherConfiguration.getGitlabUrl().replace("api/", "");
+        return gitlabUrl.substring(0, gitlabUrl.lastIndexOf('/'))
+                + '/' + gitlabFetcherConfiguration.getNamespace()
+                + '/' + gitlabFetcherConfiguration.getProject()
+                + "/edit/" + (gitlabFetcherConfiguration.getBranchOrTag() == null ?
+                "master":gitlabFetcherConfiguration.getBranchOrTag())
+                + '/' + gitlabFetcherConfiguration.getFilepath();
+    }
+
+    private void checkRequiredFields() throws FetcherException {
         if (gitlabFetcherConfiguration.getBranchOrTag() == null
                 || gitlabFetcherConfiguration.getGitlabUrl() == null
                 || gitlabFetcherConfiguration.getFilepath() == null
                 || gitlabFetcherConfiguration.getNamespace() == null
                 || gitlabFetcherConfiguration.getProject() == null) {
             throw new FetcherException("Some required configuration attributes are misging.", null);
-        }
-
-        try {
-            Buffer buffer = fetchContent().join();
-            if (buffer == null || buffer.length() == 0) {
-                logger.warn("Something goes wrong, Gitlab responds with a status 200 but the content is empty.");
-                return null;
-            }
-
-            JsonNode jsonNode = new ObjectMapper().readTree(buffer.getBytes());
-            if (jsonNode != null) {
-                JsonNode content = jsonNode.get("content");
-                if (content != null) {
-                    String contentAsBase64 = content.asText();
-                    byte[] decodedContent = Base64.getDecoder().decode(contentAsBase64);
-                    return new ByteArrayInputStream(decodedContent);
-                }
-
-                return null;
-            }
-
-            return new ByteArrayInputStream(buffer.getBytes());
-        } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
-            throw new FetcherException("Unable to fetch Gitlab content (" + ex.getMessage() + ")", ex);
         }
     }
 
@@ -276,9 +294,5 @@ public class GitlabFetcher implements Fetcher{
         }
 
         return future;
-    }
-
-    public void setVertx(Vertx vertx) {
-        this.vertx = vertx;
     }
 }

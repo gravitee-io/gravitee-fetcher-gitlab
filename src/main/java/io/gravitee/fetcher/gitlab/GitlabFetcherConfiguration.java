@@ -17,7 +17,7 @@ package io.gravitee.fetcher.gitlab;
 
 import io.gravitee.fetcher.api.FetcherConfiguration;
 
-import static io.gravitee.fetcher.gitlab.ApiVersion.V3;
+import static io.gravitee.fetcher.gitlab.ApiVersion.V4;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -26,20 +26,14 @@ import static io.gravitee.fetcher.gitlab.ApiVersion.V3;
 public class GitlabFetcherConfiguration implements FetcherConfiguration {
 
     private String gitlabUrl;
-
     private boolean useSystemProxy;
-
     private String namespace;
-
     private String project;
-
     private String branchOrTag;
-
     private String filepath;
-
     private String privateToken;
-
-    private ApiVersion apiVersion = V3;
+    private ApiVersion apiVersion = V4;
+    private String editLink;
 
 
     public String getGitlabUrl() {
@@ -104,5 +98,13 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration {
 
     public void setUseSystemProxy(boolean useSystemProxy) {
         this.useSystemProxy = useSystemProxy;
+    }
+
+    public String getEditLink() {
+        return editLink;
+    }
+
+    public void setEditLink(String editLink) {
+        this.editLink = editLink;
     }
 }
