@@ -16,6 +16,7 @@
 package io.gravitee.fetcher.gitlab;
 
 import io.gravitee.fetcher.api.FetcherConfiguration;
+import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
 
 import static io.gravitee.fetcher.gitlab.ApiVersion.V4;
 
@@ -23,7 +24,7 @@ import static io.gravitee.fetcher.gitlab.ApiVersion.V4;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GitlabFetcherConfiguration implements FetcherConfiguration {
+public class GitlabFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
 
     private String gitlabUrl;
     private boolean useSystemProxy;

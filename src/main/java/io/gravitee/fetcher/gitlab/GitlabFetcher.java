@@ -17,10 +17,9 @@ package io.gravitee.fetcher.gitlab;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.http.HttpStatusCode;
-import io.gravitee.fetcher.api.Resource;
-import io.gravitee.fetcher.api.Fetcher;
-import io.gravitee.fetcher.api.FetcherException;
+import io.gravitee.fetcher.api.*;
 import io.gravitee.fetcher.gitlab.vertx.VertxCompletableFuture;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
@@ -38,8 +37,7 @@ import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
-import java.util.Base64;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -47,7 +45,7 @@ import java.util.concurrent.CompletableFuture;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GitlabFetcher implements Fetcher {
+public class GitlabFetcher implements FilesFetcher {
 
     private static final Logger logger = LoggerFactory.getLogger(GitlabFetcher.class);
 
@@ -88,36 +86,55 @@ public class GitlabFetcher implements Fetcher {
     }
 
     @Override
+    public FilepathAwareFetcherConfiguration getConfiguration() {
+        return this.gitlabFetcherConfiguration;
+    }
+
+    @Override
     public Resource fetch() throws FetcherException {
-        checkRequiredFields();
-        try {
-            Buffer buffer = fetchContent().join();
-            final Resource resource = new Resource();
-            if (buffer == null || buffer.length() == 0) {
-                logger.warn("Something goes wrong, Gitlab responds with a status 200 but the content is empty.");
-            } else {
-                final JsonNode jsonNode = mapper.readTree(buffer.getBytes());
-                if (jsonNode != null) {
-                    final Map<String, Object> metadata = mapper.convertValue(jsonNode, Map.class);
-                    final Object content = metadata.remove("content");
-                    if (content != null) {
-                        byte[] decodedContent = Base64.getDecoder().decode(String.valueOf(content));
-                        resource.setContent(new ByteArrayInputStream(decodedContent));
-                    }
-                    metadata.put(EDIT_URL_PROPERTY_KEY, buildEditUrl());
-                    metadata.put(PROVIDER_NAME_PROPERTY_KEY, "GitLab");
-                    resource.setMetadata(metadata);
+        checkRequiredFields(true);
+        JsonNode jsonNode = this.request(getFetchUrl());
+
+        final Resource resource = new Resource();
+        if (jsonNode != null) {
+            final Map<String, Object> metadata = mapper.convertValue(jsonNode, Map.class);
+            final Object content = metadata.remove("content");
+            if (content != null) {
+                byte[] decodedContent = Base64.getDecoder().decode(String.valueOf(content));
+                resource.setContent(new ByteArrayInputStream(decodedContent));
+            }
+            metadata.put(EDIT_URL_PROPERTY_KEY, buildEditUrl());
+            metadata.put(PROVIDER_NAME_PROPERTY_KEY, "GitLab");
+            resource.setMetadata(metadata);
+        }
+        return resource;
+    }
+
+    @Override
+    public String[] files() throws FetcherException {
+        checkRequiredFields(false);
+        if ((gitlabFetcherConfiguration.getFilepath() == null || gitlabFetcherConfiguration.getFilepath().isEmpty())) {
+            gitlabFetcherConfiguration.setFilepath("/");
+        }
+        JsonNode jsonNode = this.request(getTreeUrl());
+        List<String> result = new ArrayList<>();
+        if (jsonNode != null && jsonNode.isArray()) {
+            ArrayNode tree = (ArrayNode) jsonNode;
+            Iterator<JsonNode> elements = tree.elements();
+            while (elements.hasNext()) {
+                JsonNode elt = elements.next();
+                String type = elt.get("type").asText();
+                String path = elt.get("path").asText();
+                if ("blob".equals(type)) {
+                    result.add("/" + path);
                 }
             }
-            return resource;
-        } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
-            throw new FetcherException("Unable to fetch Gitlab content (" + ex.getMessage() + ")", ex);
         }
+        return result.toArray(new String[0]);
     }
 
     private String buildEditUrl() throws FetcherException {
-        checkRequiredFields();
+        checkRequiredFields(true);
         final String gitlabUrl = gitlabFetcherConfiguration.getGitlabUrl().replace("api/", "");
         return gitlabUrl.substring(0, gitlabUrl.lastIndexOf('/'))
                 + '/' + gitlabFetcherConfiguration.getNamespace()
@@ -127,43 +144,90 @@ public class GitlabFetcher implements Fetcher {
                 + '/' + gitlabFetcherConfiguration.getFilepath();
     }
 
-    private void checkRequiredFields() throws FetcherException {
-        if (gitlabFetcherConfiguration.getBranchOrTag() == null
-                || gitlabFetcherConfiguration.getGitlabUrl() == null
-                || gitlabFetcherConfiguration.getFilepath() == null
-                || gitlabFetcherConfiguration.getNamespace() == null
-                || gitlabFetcherConfiguration.getProject() == null) {
+    private void checkRequiredFields(boolean checkFilepath) throws FetcherException {
+        if (gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().isEmpty()
+                || gitlabFetcherConfiguration.getGitlabUrl() == null || gitlabFetcherConfiguration.getGitlabUrl().isEmpty()
+                || (checkFilepath && (gitlabFetcherConfiguration.getFilepath() == null || gitlabFetcherConfiguration.getFilepath().isEmpty()))
+                || gitlabFetcherConfiguration.getNamespace() == null || gitlabFetcherConfiguration.getNamespace().isEmpty()
+                || gitlabFetcherConfiguration.getProject() == null || gitlabFetcherConfiguration.getProject().isEmpty()) {
             throw new FetcherException("Some required configuration attributes are misging.", null);
         }
     }
 
-    private String getEncodedRequestUrl() throws UnsupportedEncodingException {
+    private String getFetchUrl() throws FetcherException {
         String ref = ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
-                        ? "master"
-                        : gitlabFetcherConfiguration.getBranchOrTag().trim());
+                ? "master"
+                : gitlabFetcherConfiguration.getBranchOrTag().trim());
 
-        String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
+        try {
+            String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
 
-        switch (gitlabFetcherConfiguration.getApiVersion()) {
-            case V4:
-                return gitlabFetcherConfiguration.getGitlabUrl().trim()
-                        + "/projects/" + encodedProject
-                        + "/repository/files/" + URLEncoder.encode(gitlabFetcherConfiguration.getFilepath().trim(), "UTF-8")
-                        + "?ref=" + ref;
-            default:
-                return gitlabFetcherConfiguration.getGitlabUrl().trim()
-                        + "/projects/" + encodedProject
-                        + "/repository/files"
-                        + "?file_path=" + gitlabFetcherConfiguration.getFilepath().trim()
-                        + "&ref=" + ref;
+            switch (gitlabFetcherConfiguration.getApiVersion()) {
+                case V4:
+                    return gitlabFetcherConfiguration.getGitlabUrl().trim()
+                            + "/projects/" + encodedProject
+                            + "/repository/files/" + URLEncoder.encode(gitlabFetcherConfiguration.getFilepath().trim(), "UTF-8")
+                            + "?ref=" + ref;
+                default:
+                    return gitlabFetcherConfiguration.getGitlabUrl().trim()
+                            + "/projects/" + encodedProject
+                            + "/repository/files"
+                            + "?file_path=" + gitlabFetcherConfiguration.getFilepath().trim()
+                            + "&ref=" + ref;
+            }
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Error thrown when trying to encode the url", e);
+            throw new FetcherException("Error thrown when trying to encode the url", e);
         }
-
     }
 
-    private CompletableFuture<Buffer> fetchContent() throws Exception {
-        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
+    private String getTreeUrl() throws FetcherException {
+        String ref = ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
+                ? "master"
+                : gitlabFetcherConfiguration.getBranchOrTag().trim());
 
-        String url = getEncodedRequestUrl();
+        try {
+            String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
+            String filepath = gitlabFetcherConfiguration.getFilepath().trim();
+
+            if (filepath.startsWith("/")) {
+                if (filepath.length() == 1) {
+                    filepath = "";
+                } else {
+                    filepath = filepath.substring(1);
+                }
+            }
+
+            return gitlabFetcherConfiguration.getGitlabUrl().trim()
+                    + "/projects/" + encodedProject
+                    + "/repository/tree"
+                    + "?path=" + URLEncoder.encode(filepath, "UTF-8")
+                    + "&ref=" + ref
+                    + "&recursive=true"
+                    + "&per_page=100";
+        } catch (UnsupportedEncodingException e) {
+            logger.error("Error thrown when trying to encode the url", e);
+            throw new FetcherException("Error thrown when trying to encode the url", e);
+        }
+    }
+
+    private JsonNode request(String url) throws FetcherException {
+        try {
+            Buffer buffer = fetchContent(url).join();
+            if (buffer == null || buffer.length() == 0) {
+                logger.warn("Something goes wrong, Gitlab responds with a status 200 but the content is empty.");
+                return null;
+            }
+
+            return new ObjectMapper().readTree(buffer.getBytes());
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new FetcherException("Unable to fetch Gitlab content (" + ex.getMessage() + ")", ex);
+        }
+    }
+
+    private CompletableFuture<Buffer> fetchContent(String url) throws Exception {
+        CompletableFuture<Buffer> future = new VertxCompletableFuture<>(vertx);
 
         URI requestUri = URI.create(url);
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
