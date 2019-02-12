@@ -52,7 +52,6 @@
     "namespace",
     "project",
     "branchOrTag",
-    "filepath",
     "privateToken"
   ]
 }
