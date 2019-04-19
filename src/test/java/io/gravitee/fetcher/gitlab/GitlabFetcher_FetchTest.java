@@ -63,7 +63,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
+        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
@@ -83,7 +83,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
+        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
@@ -103,7 +103,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
+        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
@@ -126,7 +126,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
+        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
@@ -155,7 +155,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v4");
+        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v4");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V4);
@@ -187,7 +187,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
+        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
