@@ -20,6 +20,7 @@ import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.fetcher.api.FetcherException;
 import io.vertx.core.Vertx;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -43,8 +44,8 @@ import static org.junit.Assert.assertTrue;
  */
 public class GitlabFetcher_TreeTest {
 
-    @Rule
-    public WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+    @ClassRule
+    public static final WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
 
     private GitlabFetcher fetcher = new GitlabFetcher(null);
 
