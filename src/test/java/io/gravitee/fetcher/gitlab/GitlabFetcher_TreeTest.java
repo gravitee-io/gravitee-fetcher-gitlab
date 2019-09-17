@@ -72,7 +72,7 @@ public class GitlabFetcher_TreeTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         String[] tree = fetcher.files();
 
@@ -92,7 +92,7 @@ public class GitlabFetcher_TreeTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         String[] tree = fetcher.files();
 
@@ -118,7 +118,7 @@ public class GitlabFetcher_TreeTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         try {
             fetcher.files();
@@ -146,7 +146,7 @@ public class GitlabFetcher_TreeTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         String[] tree = fetcher.files();
 
@@ -171,7 +171,7 @@ public class GitlabFetcher_TreeTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         String[] tree = fetcher.files();
 

@@ -68,7 +68,7 @@ public class GitlabFetcher_FetchTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         InputStream fetch = fetcher.fetch().getContent();
 
@@ -88,7 +88,7 @@ public class GitlabFetcher_FetchTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         InputStream fetch = fetcher.fetch().getContent();
         assertThat(fetch).isNull();
@@ -131,7 +131,7 @@ public class GitlabFetcher_FetchTest {
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         InputStream fetch = fetcher.fetch().getContent();
 
@@ -161,7 +161,7 @@ public class GitlabFetcher_FetchTest {
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V4);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
-        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 1_000);
+        ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
         InputStream fetch = fetcher.fetch().getContent();
 
