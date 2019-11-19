@@ -19,8 +19,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.http.HttpStatusCode;
+import io.gravitee.common.utils.UUID;
 import io.gravitee.fetcher.api.*;
 import io.gravitee.fetcher.gitlab.vertx.VertxCompletableFuture;
+import io.gravitee.node.api.Node;
+import io.gravitee.node.api.utils.NodeUtils;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
@@ -57,6 +60,8 @@ public class GitlabFetcher implements FilesFetcher {
     private Vertx vertx;
     @Autowired
     private ObjectMapper mapper;
+    @Autowired
+    private Node node;
 
     @Value("${httpClient.timeout:10000}")
     private int httpClientTimeout;
@@ -316,6 +321,8 @@ public class GitlabFetcher implements FilesFetcher {
                     requestUri.getHost(),
                     requestUri.toString()
             );
+            request.putHeader(io.gravitee.common.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node));
+            request.putHeader("X-Gravitee-Request-Id", io.gravitee.common.utils.UUID.toString(UUID.random()));
 
             // Follow redirect since Gitlab may return a 3xx status code
             request.setFollowRedirects(true);
