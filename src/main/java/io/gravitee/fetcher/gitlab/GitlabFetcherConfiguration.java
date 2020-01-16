@@ -17,6 +17,7 @@ package io.gravitee.fetcher.gitlab;
 
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
+import io.gravitee.fetcher.api.Sensitive;
 
 import static io.gravitee.fetcher.gitlab.ApiVersion.V4;
 
@@ -32,6 +33,7 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration, Filepat
     private String project;
     private String branchOrTag;
     private String filepath;
+    @Sensitive
     private String privateToken;
     private ApiVersion apiVersion = V4;
     private String editLink;

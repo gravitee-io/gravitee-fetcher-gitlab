@@ -20,7 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.gravitee.common.http.HttpStatusCode;
 import io.gravitee.common.utils.UUID;
-import io.gravitee.fetcher.api.*;
+import io.gravitee.fetcher.api.FetcherConfiguration;
+import io.gravitee.fetcher.api.FetcherException;
+import io.gravitee.fetcher.api.FilesFetcher;
+import io.gravitee.fetcher.api.Resource;
 import io.gravitee.fetcher.gitlab.vertx.VertxCompletableFuture;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.utils.NodeUtils;
@@ -91,7 +94,7 @@ public class GitlabFetcher implements FilesFetcher {
     }
 
     @Override
-    public FilepathAwareFetcherConfiguration getConfiguration() {
+    public FetcherConfiguration getConfiguration() {
         return this.gitlabFetcherConfiguration;
     }
 
