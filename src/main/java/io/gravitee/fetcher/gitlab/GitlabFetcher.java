@@ -158,7 +158,7 @@ public class GitlabFetcher implements FilesFetcher {
                 || (checkFilepath && (gitlabFetcherConfiguration.getFilepath() == null || gitlabFetcherConfiguration.getFilepath().isEmpty()))
                 || gitlabFetcherConfiguration.getNamespace() == null || gitlabFetcherConfiguration.getNamespace().isEmpty()
                 || gitlabFetcherConfiguration.getProject() == null || gitlabFetcherConfiguration.getProject().isEmpty()) {
-            throw new FetcherException("Some required configuration attributes are misging.", null);
+            throw new FetcherException("Some required configuration attributes are missing.", null);
         }
     }
 
