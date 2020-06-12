@@ -56,7 +56,7 @@ public class GitlabFetcher_FetchTest {
 
     @Test
     public void shouldNotFetchWithoutContent() throws FetcherException {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files/%2Fpath%2Fto%2Ffile?ref=sha1"))
+        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("{\"key\": \"value\"}")));
@@ -67,6 +67,7 @@ public class GitlabFetcher_FetchTest {
         config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
@@ -77,7 +78,7 @@ public class GitlabFetcher_FetchTest {
 
     @Test
     public void shouldNotFetchEmptyBody() throws Exception {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files/%2Fpath%2Fto%2Ffile?ref=sha1"))
+        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
                 .willReturn(aResponse()
                         .withStatus(200)));
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
@@ -87,6 +88,7 @@ public class GitlabFetcher_FetchTest {
         config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
@@ -107,6 +109,7 @@ public class GitlabFetcher_FetchTest {
         config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
 
         fetcher.fetch();
@@ -119,7 +122,7 @@ public class GitlabFetcher_FetchTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files/%2Fpath%2Fto%2Ffile?ref=sha1"))
+        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("{\"content\": \""+encoded+"\"}")));
@@ -130,6 +133,7 @@ public class GitlabFetcher_FetchTest {
         config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
@@ -148,7 +152,7 @@ public class GitlabFetcher_FetchTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(get(urlEqualTo("/api/v4/projects/namespace%2Fproject/repository/files/%2Fpath%2Fto%2Ffile?ref=sha1"))
+        stubFor(get(urlEqualTo("/api/v4/projects/namespace%2Fproject/repository/files/path%2Fto%2Ffile?ref=sha1"))
                 .willReturn(aResponse()
                         .withStatus(200)
                         .withBody("{\"content\": \""+encoded+"\"}")));
@@ -191,6 +195,7 @@ public class GitlabFetcher_FetchTest {
         config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
 
         try {

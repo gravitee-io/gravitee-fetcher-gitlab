@@ -172,9 +172,13 @@ public class GitlabFetcher implements FilesFetcher {
 
             switch (gitlabFetcherConfiguration.getApiVersion()) {
                 case V4:
+                    String filepath = gitlabFetcherConfiguration.getFilepath().trim();
+                    if (filepath.startsWith("/")) {
+                        filepath = filepath.substring(1);
+                    }
                     return gitlabFetcherConfiguration.getGitlabUrl().trim()
                             + "/projects/" + encodedProject
-                            + "/repository/files/" + URLEncoder.encode(gitlabFetcherConfiguration.getFilepath().trim(), "UTF-8")
+                            + "/repository/files/" + URLEncoder.encode(filepath, "UTF-8")
                             + "?ref=" + ref;
                 default:
                     return gitlabFetcherConfiguration.getGitlabUrl().trim()

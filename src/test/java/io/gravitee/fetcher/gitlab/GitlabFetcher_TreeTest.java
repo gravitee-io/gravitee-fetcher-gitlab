@@ -71,6 +71,7 @@ public class GitlabFetcher_TreeTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
@@ -91,6 +92,7 @@ public class GitlabFetcher_TreeTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
@@ -117,6 +119,7 @@ public class GitlabFetcher_TreeTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
@@ -145,6 +148,7 @@ public class GitlabFetcher_TreeTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
@@ -170,6 +174,7 @@ public class GitlabFetcher_TreeTest {
         config.setGitlabUrl("http://localhost:" + wireMockRule.port() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
+        config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
         ReflectionTestUtils.setField(fetcher, "httpClientTimeout", 10_000);
 
