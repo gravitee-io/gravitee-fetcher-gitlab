@@ -38,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.support.CronSequenceGenerator;
 
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
@@ -157,8 +158,18 @@ public class GitlabFetcher implements FilesFetcher {
                 || gitlabFetcherConfiguration.getGitlabUrl() == null || gitlabFetcherConfiguration.getGitlabUrl().isEmpty()
                 || (checkFilepath && (gitlabFetcherConfiguration.getFilepath() == null || gitlabFetcherConfiguration.getFilepath().isEmpty()))
                 || gitlabFetcherConfiguration.getNamespace() == null || gitlabFetcherConfiguration.getNamespace().isEmpty()
-                || gitlabFetcherConfiguration.getProject() == null || gitlabFetcherConfiguration.getProject().isEmpty()) {
+                || gitlabFetcherConfiguration.getProject() == null || gitlabFetcherConfiguration.getProject().isEmpty()
+                || (gitlabFetcherConfiguration.isAutoFetch() && (gitlabFetcherConfiguration.getFetchCron() == null || gitlabFetcherConfiguration.getFetchCron().isEmpty()))
+        ) {
             throw new FetcherException("Some required configuration attributes are misging.", null);
+        }
+
+        if (gitlabFetcherConfiguration.isAutoFetch() && gitlabFetcherConfiguration.getFetchCron() != null) {
+            try {
+                new CronSequenceGenerator(gitlabFetcherConfiguration.getFetchCron());
+            } catch (IllegalArgumentException e) {
+                throw new FetcherException("Cron expression is invalid", e);
+            }
         }
     }
 
