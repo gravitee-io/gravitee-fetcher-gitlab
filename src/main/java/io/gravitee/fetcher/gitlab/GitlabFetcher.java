@@ -161,7 +161,7 @@ public class GitlabFetcher implements FilesFetcher {
                 || gitlabFetcherConfiguration.getProject() == null || gitlabFetcherConfiguration.getProject().isEmpty()
                 || (gitlabFetcherConfiguration.isAutoFetch() && (gitlabFetcherConfiguration.getFetchCron() == null || gitlabFetcherConfiguration.getFetchCron().isEmpty()))
         ) {
-            throw new FetcherException("Some required configuration attributes are misging.", null);
+            throw new FetcherException("Some required configuration attributes are missing.", null);
         }
 
         if (gitlabFetcherConfiguration.isAutoFetch() && gitlabFetcherConfiguration.getFetchCron() != null) {
@@ -362,6 +362,9 @@ public class GitlabFetcher implements FilesFetcher {
                     });
                 } else {
                     future.completeExceptionally(new FetcherException("Unable to fetch '" + url + "'. Status code: " + response.statusCode() + ". Message: " + response.statusMessage(), null));
+
+                    // Close client
+                    httpClient.close();
                 }
             });
 
