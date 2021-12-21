@@ -156,7 +156,6 @@ public class GitlabFetcher implements FilesFetcher {
         if (gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().isEmpty()
                 || gitlabFetcherConfiguration.getGitlabUrl() == null || gitlabFetcherConfiguration.getGitlabUrl().isEmpty()
                 || (checkFilepath && (gitlabFetcherConfiguration.getFilepath() == null || gitlabFetcherConfiguration.getFilepath().isEmpty()))
-                || gitlabFetcherConfiguration.getNamespace() == null || gitlabFetcherConfiguration.getNamespace().isEmpty()
                 || gitlabFetcherConfiguration.getProject() == null || gitlabFetcherConfiguration.getProject().isEmpty()
                 || (gitlabFetcherConfiguration.isAutoFetch() && (gitlabFetcherConfiguration.getFetchCron() == null || gitlabFetcherConfiguration.getFetchCron().isEmpty()))
         ) {
@@ -178,7 +177,9 @@ public class GitlabFetcher implements FilesFetcher {
                 : gitlabFetcherConfiguration.getBranchOrTag().trim());
 
         try {
-            String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
+            String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim(), "UTF-8")
+                    + '/'
+                    + URLEncoder.encode(gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
 
             switch (gitlabFetcherConfiguration.getApiVersion()) {
                 case V4:
@@ -209,7 +210,9 @@ public class GitlabFetcher implements FilesFetcher {
                 : gitlabFetcherConfiguration.getBranchOrTag().trim());
 
         try {
-            String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
+            String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim(), "UTF-8")
+                    + '/'
+                    + URLEncoder.encode(gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
             String filepath = gitlabFetcherConfiguration.getFilepath().trim();
 
             if (filepath.startsWith("/")) {

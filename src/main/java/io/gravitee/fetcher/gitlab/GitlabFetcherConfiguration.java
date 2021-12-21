@@ -29,7 +29,7 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration, Filepat
 
     private String gitlabUrl;
     private boolean useSystemProxy;
-    private String namespace;
+    private String namespace = "";
     private String project;
     private String branchOrTag;
     private String filepath;
