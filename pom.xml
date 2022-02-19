@@ -29,7 +29,7 @@
 
     <groupId>io.gravitee.fetcher</groupId>
     <artifactId>gravitee-fetcher-gitlab</artifactId>
-    <version>1.12.0-SNAPSHOT</version>
+    <version>1.12.0</version>
 
     <name>Gravitee.io APIM - Fetcher - Gitlab</name>
 
@@ -38,6 +38,8 @@
         <gravitee-node-api.version>1.4.6</gravitee-node-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <maven-assembly-plugin.version>2.5.5</maven-assembly-plugin.version>
+        <!-- Property used by the publication job in CI-->
+        <publish-folder-path>graviteeio-apim/plugins/fetchers</publish-folder-path>
     </properties>
 
     <dependencyManagement>
