@@ -15,28 +15,27 @@
  */
 package io.gravitee.fetcher.gitlab;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
-import io.gravitee.fetcher.api.FetcherException;
-import io.vertx.core.Vertx;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
-import org.springframework.test.util.ReflectionTestUtils;
-
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.List;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import io.gravitee.fetcher.api.FetcherException;
+import io.vertx.core.Vertx;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.List;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Rule;
+import org.junit.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -60,10 +59,14 @@ public class GitlabFetcher_TreeTest {
 
     @Test
     public void shouldNotTreeWithoutContent() throws FetcherException {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{\"key\": \"value\"}")));
+        stubFor(
+            get(
+                urlEqualTo(
+                    "/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"
+                )
+            )
+                .willReturn(aResponse().withStatus(200).withBody("{\"key\": \"value\"}"))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -82,9 +85,14 @@ public class GitlabFetcher_TreeTest {
 
     @Test
     public void shouldNotFetchEmptyBody() throws Exception {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"))
-                .willReturn(aResponse()
-                        .withStatus(200)));
+        stubFor(
+            get(
+                urlEqualTo(
+                    "/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"
+                )
+            )
+                .willReturn(aResponse().withStatus(200))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -106,12 +114,14 @@ public class GitlabFetcher_TreeTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"))
-                .willReturn(aResponse()
-                        .withStatus(401)
-                        .withBody("{\n" +
-                                "  \"message\": \"401 Unauthorized\"\n" +
-                                "}")));
+        stubFor(
+            get(
+                urlEqualTo(
+                    "/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"
+                )
+            )
+                .willReturn(aResponse().withStatus(401).withBody("{\n" + "  \"message\": \"401 Unauthorized\"\n" + "}"))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -136,11 +146,14 @@ public class GitlabFetcher_TreeTest {
 
     @Test
     public void shouldTree() throws Exception {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withFixedDelay(100)
-                        .withBody(treeResponse)));
+        stubFor(
+            get(
+                urlEqualTo(
+                    "/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"
+                )
+            )
+                .willReturn(aResponse().withStatus(200).withFixedDelay(100).withBody(treeResponse))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -163,10 +176,10 @@ public class GitlabFetcher_TreeTest {
 
     @Test
     public void shouldTreeWithEmptyPath() throws Exception {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/tree?path=&ref=sha1&recursive=true&per_page=100"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody(treeResponse)));
+        stubFor(
+            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/tree?path=&ref=sha1&recursive=true&per_page=100"))
+                .willReturn(aResponse().withStatus(200).withBody(treeResponse))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath(null);
         config.setProject("project");
@@ -187,34 +200,35 @@ public class GitlabFetcher_TreeTest {
         assertTrue("doc.md", asList.contains("/path/to/filepath/subdir/doc.md"));
     }
 
-    private String treeResponse = "[\n" +
-            "    {\n" +
-            "        \"id\": \"f15543ee98011810baba7886e443684ff34460bb\",\n" +
-            "        \"name\": \"subdir\",\n" +
-            "        \"type\": \"tree\",\n" +
-            "        \"path\": \"path/to/filepath/subdir\",\n" +
-            "        \"mode\": \"040000\"\n" +
-            "    },\n" +
-            "    {\n" +
-            "        \"id\": \"f15543ee98011810baba7886e443684ff34460bb\",\n" +
-            "        \"name\": \"subsubdir\",\n" +
-            "        \"type\": \"tree\",\n" +
-            "        \"path\": \"path/to/filepath/subdir/subsubdir\",\n" +
-            "        \"mode\": \"040000\"\n" +
-            "    },\n" +
-            "    {\n" +
-            "        \"id\": \"8fbc3cda5e3d58d102ab2661543e0769fd21ba5b\",\n" +
-            "        \"name\": \"swagger.yml\",\n" +
-            "        \"type\": \"blob\",\n" +
-            "        \"path\": \"path/to/filepath/swagger.yml\",\n" +
-            "        \"mode\": \"100644\"\n" +
-            "    },\n" +
-            "    {\n" +
-            "        \"id\": \"7ec4657417aae9959960d21046dac9d251ba569e\",\n" +
-            "        \"name\": \"doc.md\",\n" +
-            "        \"type\": \"blob\",\n" +
-            "        \"path\": \"path/to/filepath/subdir/doc.md\",\n" +
-            "        \"mode\": \"100644\"\n" +
-            "    }\n" +
-            "]";
+    private String treeResponse =
+        "[\n" +
+        "    {\n" +
+        "        \"id\": \"f15543ee98011810baba7886e443684ff34460bb\",\n" +
+        "        \"name\": \"subdir\",\n" +
+        "        \"type\": \"tree\",\n" +
+        "        \"path\": \"path/to/filepath/subdir\",\n" +
+        "        \"mode\": \"040000\"\n" +
+        "    },\n" +
+        "    {\n" +
+        "        \"id\": \"f15543ee98011810baba7886e443684ff34460bb\",\n" +
+        "        \"name\": \"subsubdir\",\n" +
+        "        \"type\": \"tree\",\n" +
+        "        \"path\": \"path/to/filepath/subdir/subsubdir\",\n" +
+        "        \"mode\": \"040000\"\n" +
+        "    },\n" +
+        "    {\n" +
+        "        \"id\": \"8fbc3cda5e3d58d102ab2661543e0769fd21ba5b\",\n" +
+        "        \"name\": \"swagger.yml\",\n" +
+        "        \"type\": \"blob\",\n" +
+        "        \"path\": \"path/to/filepath/swagger.yml\",\n" +
+        "        \"mode\": \"100644\"\n" +
+        "    },\n" +
+        "    {\n" +
+        "        \"id\": \"7ec4657417aae9959960d21046dac9d251ba569e\",\n" +
+        "        \"name\": \"doc.md\",\n" +
+        "        \"type\": \"blob\",\n" +
+        "        \"path\": \"path/to/filepath/subdir/doc.md\",\n" +
+        "        \"mode\": \"100644\"\n" +
+        "    }\n" +
+        "]";
 }
