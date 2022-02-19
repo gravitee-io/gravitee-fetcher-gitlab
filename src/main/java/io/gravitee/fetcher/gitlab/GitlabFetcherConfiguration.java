@@ -15,11 +15,11 @@
  */
 package io.gravitee.fetcher.gitlab;
 
+import static io.gravitee.fetcher.gitlab.ApiVersion.V4;
+
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
 import io.gravitee.fetcher.api.Sensitive;
-
-import static io.gravitee.fetcher.gitlab.ApiVersion.V4;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -33,8 +33,10 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration, Filepat
     private String project;
     private String branchOrTag;
     private String filepath;
+
     @Sensitive
     private String privateToken;
+
     private ApiVersion apiVersion = V4;
     private String editLink;
 
@@ -131,5 +133,4 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration, Filepat
     public void setEditLink(String editLink) {
         this.editLink = editLink;
     }
-
 }

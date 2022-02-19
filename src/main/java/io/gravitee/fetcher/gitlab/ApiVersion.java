@@ -20,5 +20,6 @@ package io.gravitee.fetcher.gitlab;
  * @author GraviteeSource Team
  */
 public enum ApiVersion {
-    V3, V4
+    V3,
+    V4,
 }

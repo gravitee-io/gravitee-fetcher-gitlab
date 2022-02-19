@@ -15,24 +15,23 @@
  */
 package io.gravitee.fetcher.gitlab;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import io.gravitee.fetcher.api.FetcherException;
 import io.vertx.core.Vertx;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import org.junit.Before;
 import org.junit.ClassRule;
 import org.junit.Rule;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
-import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
@@ -56,10 +55,10 @@ public class GitlabFetcher_FetchTest {
 
     @Test
     public void shouldNotFetchWithoutContent() throws FetcherException {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{\"key\": \"value\"}")));
+        stubFor(
+            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
+                .willReturn(aResponse().withStatus(200).withBody("{\"key\": \"value\"}"))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -78,9 +77,10 @@ public class GitlabFetcher_FetchTest {
 
     @Test
     public void shouldNotFetchEmptyBody() throws Exception {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
-                .willReturn(aResponse()
-                        .withStatus(200)));
+        stubFor(
+            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
+                .willReturn(aResponse().withStatus(200))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -98,10 +98,10 @@ public class GitlabFetcher_FetchTest {
 
     @Test(expected = Exception.class)
     public void shouldThrowExceptionIfContentNotBase64() throws Exception {
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{\"content\": \"not base64 content\"}")));
+        stubFor(
+            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
+                .willReturn(aResponse().withStatus(200).withBody("{\"content\": \"not base64 content\"}"))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -122,10 +122,10 @@ public class GitlabFetcher_FetchTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{\"content\": \""+encoded+"\"}")));
+        stubFor(
+            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
+                .willReturn(aResponse().withStatus(200).withBody("{\"content\": \"" + encoded + "\"}"))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -152,10 +152,10 @@ public class GitlabFetcher_FetchTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(get(urlEqualTo("/api/v4/projects/namespace%2Fproject/repository/files/path%2Fto%2Ffile?ref=sha1"))
-                .willReturn(aResponse()
-                        .withStatus(200)
-                        .withBody("{\"content\": \""+encoded+"\"}")));
+        stubFor(
+            get(urlEqualTo("/api/v4/projects/namespace%2Fproject/repository/files/path%2Fto%2Ffile?ref=sha1"))
+                .willReturn(aResponse().withStatus(200).withBody("{\"content\": \"" + encoded + "\"}"))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");
@@ -182,12 +182,10 @@ public class GitlabFetcher_FetchTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
-                .willReturn(aResponse()
-                        .withStatus(401)
-                        .withBody("{\n" +
-                                "  \"message\": \"401 Unauthorized\"\n" +
-                                "}")));
+        stubFor(
+            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
+                .willReturn(aResponse().withStatus(401).withBody("{\n" + "  \"message\": \"401 Unauthorized\"\n" + "}"))
+        );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
         config.setProject("project");

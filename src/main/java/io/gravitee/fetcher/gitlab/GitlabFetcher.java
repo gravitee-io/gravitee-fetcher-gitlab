@@ -33,18 +33,17 @@ import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.*;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.support.CronSequenceGenerator;
-
 import java.io.ByteArrayInputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.support.CronSequenceGenerator;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -61,31 +60,40 @@ public class GitlabFetcher implements FilesFetcher {
 
     @Autowired
     private Vertx vertx;
+
     @Autowired
     private ObjectMapper mapper;
+
     @Autowired
     private Node node;
 
     @Value("${httpClient.timeout:10000}")
     private int httpClientTimeout;
+
     @Value("${httpClient.proxy.type:HTTP}")
     private String httpClientProxyType;
 
     @Value("${httpClient.proxy.http.host:#{systemProperties['http.proxyHost'] ?: 'localhost'}}")
     private String httpClientProxyHttpHost;
+
     @Value("${httpClient.proxy.http.port:#{systemProperties['http.proxyPort'] ?: 3128}}")
     private int httpClientProxyHttpPort;
+
     @Value("${httpClient.proxy.http.username:#{null}}")
     private String httpClientProxyHttpUsername;
+
     @Value("${httpClient.proxy.http.password:#{null}}")
     private String httpClientProxyHttpPassword;
 
     @Value("${httpClient.proxy.https.host:#{systemProperties['https.proxyHost'] ?: 'localhost'}}")
     private String httpClientProxyHttpsHost;
+
     @Value("${httpClient.proxy.https.port:#{systemProperties['https.proxyPort'] ?: 3128}}")
     private int httpClientProxyHttpsPort;
+
     @Value("${httpClient.proxy.https.username:#{null}}")
     private String httpClientProxyHttpsUsername;
+
     @Value("${httpClient.proxy.https.password:#{null}}")
     private String httpClientProxyHttpsPassword;
 
@@ -144,21 +152,34 @@ public class GitlabFetcher implements FilesFetcher {
     private String buildEditUrl() throws FetcherException {
         checkRequiredFields(true);
         final String gitlabUrl = gitlabFetcherConfiguration.getGitlabUrl().replace("api/", "");
-        return gitlabUrl.substring(0, gitlabUrl.lastIndexOf('/'))
-                + '/' + gitlabFetcherConfiguration.getNamespace()
-                + '/' + gitlabFetcherConfiguration.getProject()
-                + "/edit/" + (gitlabFetcherConfiguration.getBranchOrTag() == null ?
-                "master":gitlabFetcherConfiguration.getBranchOrTag())
-                + '/' + gitlabFetcherConfiguration.getFilepath();
+        return (
+            gitlabUrl.substring(0, gitlabUrl.lastIndexOf('/')) +
+            '/' +
+            gitlabFetcherConfiguration.getNamespace() +
+            '/' +
+            gitlabFetcherConfiguration.getProject() +
+            "/edit/" +
+            (gitlabFetcherConfiguration.getBranchOrTag() == null ? "master" : gitlabFetcherConfiguration.getBranchOrTag()) +
+            '/' +
+            gitlabFetcherConfiguration.getFilepath()
+        );
     }
 
     private void checkRequiredFields(boolean checkFilepath) throws FetcherException {
-        if (gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().isEmpty()
-                || gitlabFetcherConfiguration.getGitlabUrl() == null || gitlabFetcherConfiguration.getGitlabUrl().isEmpty()
-                || (checkFilepath && (gitlabFetcherConfiguration.getFilepath() == null || gitlabFetcherConfiguration.getFilepath().isEmpty()))
-                || gitlabFetcherConfiguration.getNamespace() == null || gitlabFetcherConfiguration.getNamespace().isEmpty()
-                || gitlabFetcherConfiguration.getProject() == null || gitlabFetcherConfiguration.getProject().isEmpty()
-                || (gitlabFetcherConfiguration.isAutoFetch() && (gitlabFetcherConfiguration.getFetchCron() == null || gitlabFetcherConfiguration.getFetchCron().isEmpty()))
+        if (
+            gitlabFetcherConfiguration.getBranchOrTag() == null ||
+            gitlabFetcherConfiguration.getBranchOrTag().isEmpty() ||
+            gitlabFetcherConfiguration.getGitlabUrl() == null ||
+            gitlabFetcherConfiguration.getGitlabUrl().isEmpty() ||
+            (checkFilepath && (gitlabFetcherConfiguration.getFilepath() == null || gitlabFetcherConfiguration.getFilepath().isEmpty())) ||
+            gitlabFetcherConfiguration.getNamespace() == null ||
+            gitlabFetcherConfiguration.getNamespace().isEmpty() ||
+            gitlabFetcherConfiguration.getProject() == null ||
+            gitlabFetcherConfiguration.getProject().isEmpty() ||
+            (
+                gitlabFetcherConfiguration.isAutoFetch() &&
+                (gitlabFetcherConfiguration.getFetchCron() == null || gitlabFetcherConfiguration.getFetchCron().isEmpty())
+            )
         ) {
             throw new FetcherException("Some required configuration attributes are missing.", null);
         }
@@ -173,12 +194,18 @@ public class GitlabFetcher implements FilesFetcher {
     }
 
     private String getFetchUrl() throws FetcherException {
-        String ref = ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
-                ? "master"
-                : gitlabFetcherConfiguration.getBranchOrTag().trim());
+        String ref =
+            (
+                (gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
+                    ? "master"
+                    : gitlabFetcherConfiguration.getBranchOrTag().trim()
+            );
 
         try {
-            String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
+            String encodedProject = URLEncoder.encode(
+                gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(),
+                "UTF-8"
+            );
 
             switch (gitlabFetcherConfiguration.getApiVersion()) {
                 case V4:
@@ -186,16 +213,26 @@ public class GitlabFetcher implements FilesFetcher {
                     if (filepath.startsWith("/")) {
                         filepath = filepath.substring(1);
                     }
-                    return gitlabFetcherConfiguration.getGitlabUrl().trim()
-                            + "/projects/" + encodedProject
-                            + "/repository/files/" + URLEncoder.encode(filepath, "UTF-8")
-                            + "?ref=" + ref;
+                    return (
+                        gitlabFetcherConfiguration.getGitlabUrl().trim() +
+                        "/projects/" +
+                        encodedProject +
+                        "/repository/files/" +
+                        URLEncoder.encode(filepath, "UTF-8") +
+                        "?ref=" +
+                        ref
+                    );
                 default:
-                    return gitlabFetcherConfiguration.getGitlabUrl().trim()
-                            + "/projects/" + encodedProject
-                            + "/repository/files"
-                            + "?file_path=" + gitlabFetcherConfiguration.getFilepath().trim()
-                            + "&ref=" + ref;
+                    return (
+                        gitlabFetcherConfiguration.getGitlabUrl().trim() +
+                        "/projects/" +
+                        encodedProject +
+                        "/repository/files" +
+                        "?file_path=" +
+                        gitlabFetcherConfiguration.getFilepath().trim() +
+                        "&ref=" +
+                        ref
+                    );
             }
         } catch (UnsupportedEncodingException e) {
             logger.error("Error thrown when trying to encode the url", e);
@@ -204,12 +241,18 @@ public class GitlabFetcher implements FilesFetcher {
     }
 
     private String getTreeUrl() throws FetcherException {
-        String ref = ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
-                ? "master"
-                : gitlabFetcherConfiguration.getBranchOrTag().trim());
+        String ref =
+            (
+                (gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
+                    ? "master"
+                    : gitlabFetcherConfiguration.getBranchOrTag().trim()
+            );
 
         try {
-            String encodedProject = URLEncoder.encode(gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(), "UTF-8");
+            String encodedProject = URLEncoder.encode(
+                gitlabFetcherConfiguration.getNamespace().trim() + '/' + gitlabFetcherConfiguration.getProject().trim(),
+                "UTF-8"
+            );
             String filepath = gitlabFetcherConfiguration.getFilepath().trim();
 
             if (filepath.startsWith("/")) {
@@ -220,13 +263,18 @@ public class GitlabFetcher implements FilesFetcher {
                 }
             }
 
-            return gitlabFetcherConfiguration.getGitlabUrl().trim()
-                    + "/projects/" + encodedProject
-                    + "/repository/tree"
-                    + "?path=" + URLEncoder.encode(filepath, "UTF-8")
-                    + "&ref=" + ref
-                    + "&recursive=true"
-                    + "&per_page=100";
+            return (
+                gitlabFetcherConfiguration.getGitlabUrl().trim() +
+                "/projects/" +
+                encodedProject +
+                "/repository/tree" +
+                "?path=" +
+                URLEncoder.encode(filepath, "UTF-8") +
+                "&ref=" +
+                ref +
+                "&recursive=true" +
+                "&per_page=100"
+            );
         } catch (UnsupportedEncodingException e) {
             logger.error("Error thrown when trying to encode the url", e);
             throw new FetcherException("Error thrown when trying to encode the url", e);
@@ -255,12 +303,12 @@ public class GitlabFetcher implements FilesFetcher {
         boolean ssl = HTTPS_SCHEME.equalsIgnoreCase(requestUri.getScheme());
 
         final HttpClientOptions options = new HttpClientOptions()
-                .setSsl(ssl)
-                .setTrustAll(true)
-                .setMaxPoolSize(1)
-                .setKeepAlive(false)
-                .setTcpKeepAlive(false)
-                .setConnectTimeout(httpClientTimeout);
+            .setSsl(ssl)
+            .setTrustAll(true)
+            .setMaxPoolSize(1)
+            .setKeepAlive(false)
+            .setTcpKeepAlive(false)
+            .setConnectTimeout(httpClientTimeout);
 
         if (gitlabFetcherConfiguration.isUseSystemProxy()) {
             ProxyOptions proxyOptions = new ProxyOptions();
@@ -281,28 +329,29 @@ public class GitlabFetcher implements FilesFetcher {
 
         final HttpClient httpClient = vertx.createHttpClient(options);
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() :
-                (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
         try {
             final RequestOptions reqOptions = new RequestOptions()
-                    .setMethod(HttpMethod.GET)
-                    .setPort(port)
-                    .setHost(requestUri.getHost())
-                    .setURI(requestUri.toString())
-                    .putHeader(io.gravitee.common.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
-                    .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()))
-                    .setTimeout(httpClientTimeout)
-                    // Follow redirect since Gitlab may return a 3xx status code
-                    .setFollowRedirects(true);
+                .setMethod(HttpMethod.GET)
+                .setPort(port)
+                .setHost(requestUri.getHost())
+                .setURI(requestUri.toString())
+                .putHeader(io.gravitee.common.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
+                .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()))
+                .setTimeout(httpClientTimeout)
+                // Follow redirect since Gitlab may return a 3xx status code
+                .setFollowRedirects(true);
 
             if (gitlabFetcherConfiguration.getPrivateToken() != null && !gitlabFetcherConfiguration.getPrivateToken().trim().isEmpty()) {
                 // Set GitLab token header
                 reqOptions.putHeader("PRIVATE-TOKEN", gitlabFetcherConfiguration.getPrivateToken());
             }
 
-            httpClient.request(reqOptions)
-                    .onFailure(new Handler<Throwable>() {
+            httpClient
+                .request(reqOptions)
+                .onFailure(
+                    new Handler<Throwable>() {
                         @Override
                         public void handle(Throwable throwable) {
                             promise.fail(throwable);
@@ -310,8 +359,10 @@ public class GitlabFetcher implements FilesFetcher {
                             // Close client
                             httpClient.close();
                         }
-                    })
-                    .onSuccess(new Handler<HttpClientRequest>() {
+                    }
+                )
+                .onSuccess(
+                    new Handler<HttpClientRequest>() {
                         @Override
                         public void handle(HttpClientRequest request) {
                             request.response(asyncResponse -> {
@@ -330,7 +381,17 @@ public class GitlabFetcher implements FilesFetcher {
                                             httpClient.close();
                                         });
                                     } else {
-                                        promise.fail(new FetcherException("Unable to fetch '" + url + "'. Status code: " + response.statusCode() + ". Message: " + response.statusMessage(), null));
+                                        promise.fail(
+                                            new FetcherException(
+                                                "Unable to fetch '" +
+                                                url +
+                                                "'. Status code: " +
+                                                response.statusCode() +
+                                                ". Message: " +
+                                                response.statusMessage(),
+                                                null
+                                            )
+                                        );
 
                                         // Close client
                                         httpClient.close();
@@ -351,8 +412,8 @@ public class GitlabFetcher implements FilesFetcher {
 
                             request.end();
                         }
-                    });
-
+                    }
+                );
         } catch (Exception ex) {
             logger.error("Unable to fetch content using HTTP", ex);
             promise.fail(ex);
