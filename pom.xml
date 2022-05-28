@@ -35,7 +35,7 @@
 
     <properties>
         <gravitee-bom.version>1.1</gravitee-bom.version>
-        <gravitee-node-api.version>1.4.6</gravitee-node-api.version>
+        <gravitee-node-api.version>1.22.0</gravitee-node-api.version>
         <gravitee-fetcher-api.version>1.4.0</gravitee-fetcher-api.version>
         <maven-assembly-plugin.version>2.5.5</maven-assembly-plugin.version>
         <!-- Property used by the publication job in CI-->
