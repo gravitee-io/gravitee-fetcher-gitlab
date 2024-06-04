@@ -1,77 +1,68 @@
 {
-  "type": "object",
-  "title": "gitlab",
-  "properties": {
-    "apiVersion" : {
-      "title": "Gitlab API Version",
-      "description": "The api version to use.",
-      "type" : "string",
-      "default": "V4",
-      "enum" : [ "V3", "V4" ]
-    },
-    "gitlabUrl": {
-      "title": "GitLab api url",
-      "description": "GitLab API url (e.g. https://gitlab.com/api/v3)",
-      "type": "string",
-      "default": "https://gitlab.com/api/v4"
-    },
-    "useSystemProxy": {
-      "title": "Use system proxy",
-      "description": "Use the system proxy configured by your administrator.",
-      "type": "boolean"
-    },
-    "namespace": {
-      "title": "Namespace",
-      "description": "Username and groupname",
-      "type": "string"
-    },
-    "project": {
-      "title": "Project",
-      "description": "Project name",
-      "type": "string"
-    },
-    "branchOrTag": {
-      "title": "Ref",
-      "description": "Branch name, tag or sha1 (e.g. master)",
-      "type": "string",
-      "default": "master"
-    },
-    "filepath": {
-      "title": "Filepath",
-      "description": "The path to the file to fetch (e.g. /docs/main/README.md)",
-      "type": "string"
-    },
-    "privateToken": {
-      "title": "Private or Personal Token",
-      "description": "See https://docs.gitlab.com/ce/api/#authentication",
-      "type": "string"
-    },
-    "autoFetch": {
-      "title": "Auto Fetch",
-      "description": "Trigger periodic update",
-      "type": "boolean",
-      "default": false
-    },
-    "fetchCron": {
-      "title": "Update frequency",
-      "description": "Define update frequency using Crontab pattern.<BR><B>Note:</B> Platform administrator may have configure a max frequency that you cannot exceed",
-      "type": "string"
-    }
-  },
-  "required": [
-    "gitlabUrl",
-    "namespace",
-    "project",
-    "branchOrTag",
-    "privateToken"
-  ],
-  "if": {
+    "type": "object",
+    "title": "gitlab",
     "properties": {
-      "autoFetch": { "const": true }
-    }
-  },
-  "then": { "required": ["fetchCron"] }
+        "apiVersion": {
+            "title": "Gitlab API Version",
+            "description": "The api version to use.",
+            "type": "string",
+            "default": "V4",
+            "enum": ["V3", "V4"]
+        },
+        "gitlabUrl": {
+            "title": "GitLab api url",
+            "description": "GitLab API url (e.g. https://gitlab.com/api/v3)",
+            "type": "string",
+            "default": "https://gitlab.com/api/v4"
+        },
+        "useSystemProxy": {
+            "title": "Use system proxy",
+            "description": "Use the system proxy configured by your administrator.",
+            "type": "boolean"
+        },
+        "namespace": {
+            "title": "Namespace",
+            "description": "Username and groupname",
+            "type": "string"
+        },
+        "project": {
+            "title": "Project",
+            "description": "Project name",
+            "type": "string"
+        },
+        "branchOrTag": {
+            "title": "Ref",
+            "description": "Branch name, tag or sha1 (e.g. master)",
+            "type": "string",
+            "default": "master"
+        },
+        "filepath": {
+            "title": "Filepath",
+            "description": "The path to the file to fetch (e.g. /docs/main/README.md)",
+            "type": "string"
+        },
+        "privateToken": {
+            "title": "Private or Personal Token",
+            "description": "See https://docs.gitlab.com/ce/api/#authentication",
+            "type": "string"
+        },
+        "autoFetch": {
+            "title": "Auto Fetch",
+            "description": "Trigger periodic update",
+            "type": "boolean",
+            "default": false
+        },
+        "fetchCron": {
+            "title": "Update frequency",
+            "description": "Define update frequency using Crontab pattern.<BR><B>Note:</B> Platform administrator may have configure a max frequency that you cannot exceed",
+            "type": "string"
+        }
+    },
+    "required": ["gitlabUrl", "namespace", "project", "branchOrTag", "privateToken"],
+    "if": {
+        "properties": {
+            "autoFetch": { "const": true }
+        }
+    },
+    "then": { "required": ["fetchCron"] }
 }
-
-
-
