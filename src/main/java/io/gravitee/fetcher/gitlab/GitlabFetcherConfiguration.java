@@ -20,11 +20,15 @@ import static io.gravitee.fetcher.gitlab.ApiVersion.V4;
 import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FilepathAwareFetcherConfiguration;
 import io.gravitee.fetcher.api.Sensitive;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@Getter
+@Setter
 public class GitlabFetcherConfiguration implements FetcherConfiguration, FilepathAwareFetcherConfiguration {
 
     private String gitlabUrl;
@@ -43,94 +47,4 @@ public class GitlabFetcherConfiguration implements FetcherConfiguration, Filepat
     private String fetchCron;
 
     private boolean autoFetch = false;
-
-    @Override
-    public String getFetchCron() {
-        return fetchCron;
-    }
-
-    public void setFetchCron(String fetchCron) {
-        this.fetchCron = fetchCron;
-    }
-
-    @Override
-    public boolean isAutoFetch() {
-        return autoFetch;
-    }
-
-    public void setAutoFetch(boolean autoFetch) {
-        this.autoFetch = autoFetch;
-    }
-
-    public String getGitlabUrl() {
-        return gitlabUrl;
-    }
-
-    public void setGitlabUrl(String gitlabUrl) {
-        this.gitlabUrl = gitlabUrl;
-    }
-
-    public String getNamespace() {
-        return namespace;
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
-    public String getProject() {
-        return project;
-    }
-
-    public void setProject(String project) {
-        this.project = project;
-    }
-
-    public String getBranchOrTag() {
-        return branchOrTag;
-    }
-
-    public void setBranchOrTag(String branchOrTag) {
-        this.branchOrTag = branchOrTag;
-    }
-
-    public String getFilepath() {
-        return filepath;
-    }
-
-    public void setFilepath(String filepath) {
-        this.filepath = filepath;
-    }
-
-    public String getPrivateToken() {
-        return privateToken;
-    }
-
-    public void setPrivateToken(String privateToken) {
-        this.privateToken = privateToken;
-    }
-
-    public ApiVersion getApiVersion() {
-        return apiVersion;
-    }
-
-    public void setApiVersion(ApiVersion apiVersion) {
-        this.apiVersion = apiVersion;
-    }
-
-    public boolean isUseSystemProxy() {
-        return useSystemProxy;
-    }
-
-    public void setUseSystemProxy(boolean useSystemProxy) {
-        this.useSystemProxy = useSystemProxy;
-    }
-
-    public String getEditLink() {
-        return editLink;
-    }
-
-    public void setEditLink(String editLink) {
-        this.editLink = editLink;
-    }
 }
