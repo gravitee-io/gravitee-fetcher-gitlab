@@ -18,36 +18,35 @@ package io.gravitee.fetcher.gitlab;
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import io.gravitee.fetcher.api.FetcherException;
 import io.vertx.core.Vertx;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
-import org.junit.Before;
-import org.junit.ClassRule;
-import org.junit.Rule;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
 /**
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
-public class GitlabFetcher_FetchTest {
+class GitlabFetcher_FetchTest {
 
-    @ClassRule
-    public static final WireMockRule wireMockRule = new WireMockRule(wireMockConfig().dynamicPort());
+    @RegisterExtension
+    static WireMockExtension wiremock = WireMockExtension.newInstance().options(wireMockConfig().dynamicPort()).build();
 
     private GitlabFetcher fetcher = new GitlabFetcher(null);
 
     private Vertx vertx = Vertx.vertx();
     private ObjectMapper mapper = new ObjectMapper();
 
-    @Before
+    @BeforeEach
     public void init() {
         ReflectionTestUtils.setField(fetcher, "vertx", vertx);
         ReflectionTestUtils.setField(fetcher, "mapper", mapper);
@@ -55,7 +54,7 @@ public class GitlabFetcher_FetchTest {
 
     @Test
     public void shouldNotFetchWithoutContent() throws FetcherException {
-        stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
                 .willReturn(aResponse().withStatus(200).withBody("{\"key\": \"value\"}"))
         );
@@ -63,7 +62,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
+        config.setGitlabUrl(wiremock.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V3);
@@ -77,7 +76,7 @@ public class GitlabFetcher_FetchTest {
 
     @Test
     public void shouldNotFetchEmptyBody() throws Exception {
-        stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
                 .willReturn(aResponse().withStatus(200))
         );
@@ -85,7 +84,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
+        config.setGitlabUrl(wiremock.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V3);
@@ -96,9 +95,9 @@ public class GitlabFetcher_FetchTest {
         assertThat(fetch).isNull();
     }
 
-    @Test(expected = Exception.class)
+    @Test
     public void shouldThrowExceptionIfContentNotBase64() throws Exception {
-        stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
                 .willReturn(aResponse().withStatus(200).withBody("{\"content\": \"not base64 content\"}"))
         );
@@ -106,15 +105,13 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
+        config.setGitlabUrl(wiremock.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
 
-        fetcher.fetch();
-
-        fail("Decode non base64 content does not throw Exception");
+        assertThatThrownBy(fetcher::fetch).hasMessage("Illegal base64 character 20");
     }
 
     @Test
@@ -122,7 +119,7 @@ public class GitlabFetcher_FetchTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
                 .willReturn(aResponse().withStatus(200).withBody("{\"content\": \"" + encoded + "\"}"))
         );
@@ -130,7 +127,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
+        config.setGitlabUrl(wiremock.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V3);
@@ -152,7 +149,7 @@ public class GitlabFetcher_FetchTest {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/api/v4/projects/namespace%2Fproject/repository/files/path%2Fto%2Ffile?ref=sha1"))
                 .willReturn(aResponse().withStatus(200).withBody("{\"content\": \"" + encoded + "\"}"))
         );
@@ -160,7 +157,7 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v4");
+        config.setGitlabUrl(wiremock.baseUrl() + "/api/v4");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V4);
@@ -177,12 +174,12 @@ public class GitlabFetcher_FetchTest {
         assertThat(decoded).isEqualTo(content);
     }
 
-    @Test(expected = FetcherException.class)
+    @Test
     public void shouldThrowExceptionWhenStatusNot200() throws Exception {
         String content = "Gravitee.io is awesome!";
         String encoded = Base64.getEncoder().encodeToString(content.getBytes());
 
-        stubFor(
+        wiremock.stubFor(
             get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/path/to/file&ref=sha1"))
                 .willReturn(aResponse().withStatus(401).withBody("{\n" + "  \"message\": \"401 Unauthorized\"\n" + "}"))
         );
@@ -190,20 +187,15 @@ public class GitlabFetcher_FetchTest {
         config.setFilepath("/path/to/file");
         config.setProject("project");
         config.setNamespace("namespace");
-        config.setGitlabUrl(wireMockRule.baseUrl() + "/api/v3");
+        config.setGitlabUrl(wiremock.baseUrl() + "/api/v3");
         config.setBranchOrTag("sha1");
         config.setPrivateToken("token");
         config.setApiVersion(ApiVersion.V3);
         ReflectionTestUtils.setField(fetcher, "gitlabFetcherConfiguration", config);
 
-        try {
-            fetcher.fetch();
-        } catch (FetcherException fe) {
-            assertThat(fe.getMessage().contains("Status code: 401"));
-            assertThat(fe.getMessage().contains("Message: 401 Unauthorized"));
-            throw fe;
-        }
-
-        fail("Fetch response with status code != 200 does not throw Exception");
+        assertThatThrownBy(fetcher::fetch)
+            .isInstanceOf(FetcherException.class)
+            .hasMessageContaining("Status code: 401")
+            .hasMessageContaining("Message: Unauthorized");
     }
 }
