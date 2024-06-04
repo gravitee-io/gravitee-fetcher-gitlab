@@ -43,7 +43,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.support.CronSequenceGenerator;
+import org.springframework.scheduling.support.CronExpression;
 
 /**
  * @author David BRASSELY (david.brassely at graviteesource.com)
@@ -186,7 +186,7 @@ public class GitlabFetcher implements FilesFetcher {
 
         if (gitlabFetcherConfiguration.isAutoFetch() && gitlabFetcherConfiguration.getFetchCron() != null) {
             try {
-                new CronSequenceGenerator(gitlabFetcherConfiguration.getFetchCron());
+                CronExpression.parse(gitlabFetcherConfiguration.getFetchCron());
             } catch (IllegalArgumentException e) {
                 throw new FetcherException("Cron expression is invalid", e);
             }
