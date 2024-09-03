@@ -4,20 +4,20 @@
     "properties": {
         "apiVersion": {
             "title": "Gitlab API Version",
-            "description": "The api version to use.",
+            "description": "The API version to use",
             "type": "string",
             "default": "V4",
             "enum": ["V3", "V4"]
         },
         "gitlabUrl": {
-            "title": "GitLab api url",
+            "title": "GitLab API url",
             "description": "GitLab API url (e.g. https://gitlab.com/api/v3)",
             "type": "string",
             "default": "https://gitlab.com/api/v4"
         },
         "useSystemProxy": {
             "title": "Use system proxy",
-            "description": "Use the system proxy configured by your administrator.",
+            "description": "Use the system proxy configured by your administrator",
             "type": "boolean"
         },
         "namespace": {
@@ -43,19 +43,27 @@
         },
         "privateToken": {
             "title": "Private or Personal Token",
-            "description": "See https://docs.gitlab.com/ce/api/#authentication",
+            "description": "See https://docs.gitlab.com/ce/api/#authentication for details",
             "type": "string"
         },
         "autoFetch": {
-            "title": "Auto Fetch",
-            "description": "Trigger periodic update",
+            "title": "Enable Auto Fetch",
+            "description": "Enable a periodic update of this documentation page",
             "type": "boolean",
             "default": false
         },
         "fetchCron": {
             "title": "Update frequency",
-            "description": "Define update frequency using Crontab pattern.<BR><B>Note:</B> Platform administrator may have configure a max frequency that you cannot exceed",
-            "type": "string"
+            "description": "Define update frequency using Crontab pattern. Note: Platform administrator may have configured a max frequency that you cannot exceed.",
+            "type": "string",
+            "format": "gio-cron",
+            "gioConfig": {
+                "displayIf": {
+                    "$eq": {
+                        "value.autoFetch": true
+                    }
+                }
+            }
         }
     },
     "required": ["gitlabUrl", "namespace", "project", "branchOrTag", "privateToken"],
