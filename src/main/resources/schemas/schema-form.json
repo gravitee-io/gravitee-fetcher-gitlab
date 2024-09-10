@@ -1,10 +1,11 @@
 {
+    "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
-    "title": "gitlab",
+    "title": "GitLab",
     "properties": {
         "apiVersion": {
             "title": "Gitlab API Version",
-            "description": "The API version to use",
+            "description": "The API version to use. Default to V4.",
             "type": "string",
             "default": "V4",
             "enum": ["V3", "V4"]
@@ -32,7 +33,7 @@
         },
         "branchOrTag": {
             "title": "Ref",
-            "description": "Branch name, tag or sha1 (e.g. master)",
+            "description": "Branch name, tag or sha1 (e.g. master). Default to master.",
             "type": "string",
             "default": "master"
         },
@@ -54,7 +55,7 @@
         },
         "fetchCron": {
             "title": "Update frequency",
-            "description": "Define update frequency using Crontab pattern. Note: Platform administrator may have configured a max frequency that you cannot exceed.",
+            "description": "Define update frequency using Crontab pattern. Leaving it empty will not trigger any update. Note: Platform administrator may have configured a max frequency that you cannot exceed.",
             "type": "string",
             "format": "gio-cron",
             "gioConfig": {
@@ -66,11 +67,5 @@
             }
         }
     },
-    "required": ["gitlabUrl", "namespace", "project", "branchOrTag", "privateToken"],
-    "if": {
-        "properties": {
-            "autoFetch": { "const": true }
-        }
-    },
-    "then": { "required": ["fetchCron"] }
+    "required": ["gitlabUrl", "namespace", "project", "branchOrTag", "privateToken"]
 }
