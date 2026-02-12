@@ -34,7 +34,7 @@
     <name>Gravitee.io APIM - Fetcher - GitLab</name>
 
     <properties>
-        <gravitee-bom.version>6.0.62</gravitee-bom.version>
+        <gravitee-bom.version>8.3.47</gravitee-bom.version>
         <gravitee-node-api.version>4.8.9</gravitee-node-api.version>
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
         <wiremock.version>3.13.1</wiremock.version>
