@@ -332,11 +332,13 @@ public class GitlabFetcher implements FilesFetcher {
         final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
 
         try {
+            String pathAndQuery = requestUri.getRawPath() + (requestUri.getRawQuery() != null ? "?" + requestUri.getRawQuery() : "");
+            logger.debug("Fetching GitLab content from host: {}, URI: {}", requestUri.getHost(), pathAndQuery);
             final RequestOptions reqOptions = new RequestOptions()
                 .setMethod(HttpMethod.GET)
                 .setPort(port)
                 .setHost(requestUri.getHost())
-                .setURI(requestUri.toString())
+                .setURI(pathAndQuery)
                 .putHeader(io.gravitee.common.http.HttpHeaders.USER_AGENT, NodeUtils.userAgent(node))
                 .putHeader("X-Gravitee-Request-Id", UUID.toString(UUID.random()))
                 .setTimeout(httpClientTimeout)
