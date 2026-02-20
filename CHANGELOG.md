@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/gravitee-io/gravitee-fetcher-gitlab/compare/2.1.1...2.1.2) (2026-02-20)
+
+
+### Bug Fixes
+
+* impossible to retrieve documentation from private gitlab ([6d100e8](https://github.com/gravitee-io/gravitee-fetcher-gitlab/commit/6d100e88855db0fd6c65f549f066c5ca5d1d7d43))
+
 ## [2.1.1](https://github.com/gravitee-io/gravitee-fetcher-gitlab/compare/2.1.0...2.1.1) (2024-09-11)
 
 
