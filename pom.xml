@@ -39,7 +39,7 @@
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
         <wiremock.version>3.13.2</wiremock.version>
 
-        <maven-assembly-plugin.version>3.7.1</maven-assembly-plugin.version>
+        <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/plugins/fetchers</publish-folder-path>
     </properties>
