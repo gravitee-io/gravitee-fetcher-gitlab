@@ -39,6 +39,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -281,8 +282,9 @@ public class GitlabFetcher implements FilesFetcher {
 
             return new ObjectMapper().readTree(buffer.getBytes());
         } catch (Exception ex) {
-            log.error(ex.getMessage(), ex);
-            throw new FetcherException("Unable to fetch Gitlab content (" + ex.getMessage() + ")", ex);
+            Throwable cause = ex instanceof ExecutionException && ex.getCause() != null ? ex.getCause() : ex;
+            log.error(cause.getMessage(), cause);
+            throw new FetcherException("Unable to fetch Gitlab content (" + cause.getMessage() + ")", cause);
         }
     }
 
@@ -366,7 +368,6 @@ public class GitlabFetcher implements FilesFetcher {
                 .onSuccess(promise::complete)
                 .onFailure(promise::fail);
         } catch (Exception ex) {
-            log.error("Unable to fetch content using HTTP", ex);
             promise.fail(ex);
         }
 
