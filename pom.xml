@@ -70,6 +70,12 @@
             <version>${gravitee-node.version}</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>io.gravitee.node</groupId>
+            <artifactId>gravitee-node-logging</artifactId>
+            <version>${gravitee-node.version}</version>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Jackson dependencies -->
         <dependency>
