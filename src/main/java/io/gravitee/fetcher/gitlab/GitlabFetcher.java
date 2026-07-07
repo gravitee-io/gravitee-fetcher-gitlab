@@ -39,8 +39,7 @@ import java.net.URI;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.CustomLog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.support.CronExpression;
@@ -50,9 +49,8 @@ import org.springframework.scheduling.support.CronExpression;
  * @author Nicolas GERAUD (nicolas.geraud at graviteesource.com)
  * @author GraviteeSource Team
  */
+@CustomLog
 public class GitlabFetcher implements FilesFetcher {
-
-    private static final Logger logger = LoggerFactory.getLogger(GitlabFetcher.class);
 
     private static final String HTTPS_SCHEME = "https";
 
@@ -230,7 +228,7 @@ public class GitlabFetcher implements FilesFetcher {
                     );
             }
         } catch (UnsupportedEncodingException e) {
-            logger.error("Error thrown when trying to encode the url", e);
+            log.error("Error thrown when trying to encode the url", e);
             throw new FetcherException("Error thrown when trying to encode the url", e);
         }
     }
@@ -268,7 +266,7 @@ public class GitlabFetcher implements FilesFetcher {
                 "&per_page=100"
             );
         } catch (UnsupportedEncodingException e) {
-            logger.error("Error thrown when trying to encode the url", e);
+            log.error("Error thrown when trying to encode the url", e);
             throw new FetcherException("Error thrown when trying to encode the url", e);
         }
     }
@@ -277,13 +275,13 @@ public class GitlabFetcher implements FilesFetcher {
         try {
             Buffer buffer = fetchContent(url).get();
             if (buffer == null || buffer.length() == 0) {
-                logger.warn("Something goes wrong, Gitlab responds with a status 200 but the content is empty.");
+                log.warn("Something goes wrong, Gitlab responds with a status 200 but the content is empty.");
                 return null;
             }
 
             return new ObjectMapper().readTree(buffer.getBytes());
         } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
+            log.error(ex.getMessage(), ex);
             throw new FetcherException("Unable to fetch Gitlab content (" + ex.getMessage() + ")", ex);
         }
     }
@@ -328,7 +326,7 @@ public class GitlabFetcher implements FilesFetcher {
 
         try {
             String pathAndQuery = requestUri.getRawPath() + (requestUri.getRawQuery() != null ? "?" + requestUri.getRawQuery() : "");
-            logger.debug("Fetching GitLab content from host: {}, URI: {}", requestUri.getHost(), pathAndQuery);
+            log.debug("Fetching GitLab content from host: {}, URI: {}", requestUri.getHost(), pathAndQuery);
             final RequestOptions reqOptions = new RequestOptions()
                 .setMethod(HttpMethod.GET)
                 .setPort(port)
@@ -368,7 +366,7 @@ public class GitlabFetcher implements FilesFetcher {
                 .onSuccess(promise::complete)
                 .onFailure(promise::fail);
         } catch (Exception ex) {
-            logger.error("Unable to fetch content using HTTP", ex);
+            log.error("Unable to fetch content using HTTP", ex);
             promise.fail(ex);
         }
 
