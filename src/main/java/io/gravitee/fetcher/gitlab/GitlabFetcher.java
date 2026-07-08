@@ -282,6 +282,10 @@ public class GitlabFetcher implements FilesFetcher {
             }
 
             return new ObjectMapper().readTree(buffer.getBytes());
+        } catch (InterruptedException ie) {
+            Thread.currentThread().interrupt();
+            log.error("Fetch of Gitlab content '{}' has been interrupted", url, ie);
+            throw new FetcherException("Unable to fetch Gitlab content (" + ie.getMessage() + ")", ie);
         } catch (Exception ex) {
             Throwable cause = ex instanceof ExecutionException && ex.getCause() != null ? ex.getCause() : ex;
             log.error(cause.getMessage(), cause);
