@@ -24,6 +24,7 @@ import io.gravitee.fetcher.api.FetcherConfiguration;
 import io.gravitee.fetcher.api.FetcherException;
 import io.gravitee.fetcher.api.FilesFetcher;
 import io.gravitee.fetcher.api.Resource;
+import io.gravitee.fetcher.api.ResourceNotFoundException;
 import io.gravitee.node.api.Node;
 import io.gravitee.node.api.utils.NodeUtils;
 import io.vertx.core.Future;
@@ -288,9 +289,30 @@ public class GitlabFetcher implements FilesFetcher {
             throw new FetcherException("Unable to fetch Gitlab content (" + ie.getMessage() + ")", ie);
         } catch (Exception ex) {
             Throwable cause = ex instanceof ExecutionException && ex.getCause() != null ? ex.getCause() : ex;
+            if (cause instanceof ResourceNotFoundException resourceNotFoundException) {
+                throw resourceNotFoundException;
+            }
             log.error(cause.getMessage(), cause);
             throw new FetcherException("Unable to fetch Gitlab content (" + cause.getMessage() + ")", cause);
         }
+    }
+
+    private String buildNotFoundMessage(String url) {
+        String ref = gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty()
+            ? "master"
+            : gitlabFetcherConfiguration.getBranchOrTag().trim();
+        return (
+            "Unable to fetch file '" +
+            gitlabFetcherConfiguration.getFilepath() +
+            "' from GitLab project '" +
+            gitlabFetcherConfiguration.getNamespace() +
+            "/" +
+            gitlabFetcherConfiguration.getProject() +
+            "' (ref: " +
+            ref +
+            "): resource not found. Requested URL: " +
+            url
+        );
     }
 
     private CompletableFuture<Buffer> fetchContent(String url) throws Exception {
@@ -368,6 +390,8 @@ public class GitlabFetcher implements FilesFetcher {
     private Future<Buffer> handleResponse(String url, HttpClientResponse response) {
         if (response.statusCode() == HttpStatusCode.OK_200) {
             return response.body();
+        } else if (response.statusCode() == HttpStatusCode.NOT_FOUND_404) {
+            return Future.failedFuture(new ResourceNotFoundException(buildNotFoundMessage(url), null));
         } else {
             return Future.failedFuture(
                 new FetcherException(

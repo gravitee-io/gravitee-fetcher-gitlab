@@ -39,7 +39,7 @@
         },
         "filepath": {
             "title": "Filepath",
-            "description": "The path to the file to fetch (e.g. /docs/main/README.md)",
+            "description": "The path to the file to fetch (e.g. docs/main/README.md)",
             "type": "string"
         },
         "privateToken": {
