@@ -1,3 +1,10 @@
+## [3.0.1](https://github.com/gravitee-io/gravitee-fetcher-gitlab/compare/3.0.0...3.0.1) (2026-07-21)
+
+
+### Bug Fixes
+
+* throw explicit resource not found error and harmonize filepath docs ([e49e54c](https://github.com/gravitee-io/gravitee-fetcher-gitlab/commit/e49e54c95baada2e529bd0b30a0960eedf3637bc))
+
 # [3.0.0](https://github.com/gravitee-io/gravitee-fetcher-gitlab/compare/2.1.2...3.0.0) (2026-07-15)
 
 
