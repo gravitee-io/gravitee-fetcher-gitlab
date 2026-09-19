@@ -39,7 +39,6 @@
         <gravitee-fetcher-api.version>2.1.0</gravitee-fetcher-api.version>
         <wiremock.version>3.13.2</wiremock.version>
 
-        <maven-assembly-plugin.version>3.8.0</maven-assembly-plugin.version>
         <!-- Property used by the publication job in CI-->
         <publish-folder-path>graviteeio-apim/plugins/fetchers</publish-folder-path>
     </properties>
@@ -170,7 +169,6 @@
         <plugins>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
-                <version>${maven-assembly-plugin.version}</version>
                 <configuration>
                     <appendAssemblyId>false</appendAssemblyId>
                     <descriptors>
@@ -186,10 +184,6 @@
                         </goals>
                     </execution>
                 </executions>
-            </plugin>
-            <plugin>
-                <groupId>com.hubspot.maven.plugins</groupId>
-                <artifactId>prettier-maven-plugin</artifactId>
             </plugin>
         </plugins>
     </build>
