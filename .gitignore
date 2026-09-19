@@ -167,3 +167,4 @@ buildNumber.properties
 .mvn/timing.properties
 
 gravitee-fetcher-git.iml
+.DS_Store
