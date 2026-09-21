@@ -56,8 +56,7 @@ public class GitlabFetcher_TreeTest {
                 urlEqualTo(
                     "/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"
                 )
-            )
-                .willReturn(aResponse().withStatus(200).withBody("{\"key\": \"value\"}"))
+            ).willReturn(aResponse().withStatus(200).withBody("{\"key\": \"value\"}"))
         );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
@@ -82,8 +81,7 @@ public class GitlabFetcher_TreeTest {
                 urlEqualTo(
                     "/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"
                 )
-            )
-                .willReturn(aResponse().withStatus(200))
+            ).willReturn(aResponse().withStatus(200))
         );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
@@ -108,8 +106,7 @@ public class GitlabFetcher_TreeTest {
                 urlEqualTo(
                     "/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"
                 )
-            )
-                .willReturn(aResponse().withStatus(401).withBody("{\n" + "  \"message\": \"401 Unauthorized\"\n" + "}"))
+            ).willReturn(aResponse().withStatus(401).withBody("{\n" + "  \"message\": \"401 Unauthorized\"\n" + "}"))
         );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
@@ -135,8 +132,7 @@ public class GitlabFetcher_TreeTest {
                 urlEqualTo(
                     "/api/v3/projects/namespace%2Fproject/repository/tree?path=path%2Fto%2Ffile&ref=sha1&recursive=true&per_page=100"
                 )
-            )
-                .willReturn(aResponse().withStatus(200).withFixedDelay(100).withBody(treeResponse))
+            ).willReturn(aResponse().withStatus(200).withFixedDelay(100).withBody(treeResponse))
         );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath("/path/to/file");
@@ -159,8 +155,9 @@ public class GitlabFetcher_TreeTest {
     @Test
     public void shouldTreeWithEmptyPath() throws Exception {
         wiremock.stubFor(
-            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/tree?path=&ref=sha1&recursive=true&per_page=100"))
-                .willReturn(aResponse().withStatus(200).withBody(treeResponse))
+            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/tree?path=&ref=sha1&recursive=true&per_page=100")).willReturn(
+                aResponse().withStatus(200).withBody(treeResponse)
+            )
         );
         GitlabFetcherConfiguration config = new GitlabFetcherConfiguration();
         config.setFilepath(null);
@@ -180,36 +177,35 @@ public class GitlabFetcher_TreeTest {
         assertThat(tree).contains("/path/to/filepath/swagger.yml", "/path/to/filepath/subdir/doc.md");
     }
 
-    private final String treeResponse =
-        """
-                    [
-                        {
-                            "id": "f15543ee98011810baba7886e443684ff34460bb",
-                            "name": "subdir",
-                            "type": "tree",
-                            "path": "path/to/filepath/subdir",
-                            "mode": "040000"
-                        },
-                        {
-                            "id": "f15543ee98011810baba7886e443684ff34460bb",
-                            "name": "subsubdir",
-                            "type": "tree",
-                            "path": "path/to/filepath/subdir/subsubdir",
-                            "mode": "040000"
-                        },
-                        {
-                            "id": "8fbc3cda5e3d58d102ab2661543e0769fd21ba5b",
-                            "name": "swagger.yml",
-                            "type": "blob",
-                            "path": "path/to/filepath/swagger.yml",
-                            "mode": "100644"
-                        },
-                        {
-                            "id": "7ec4657417aae9959960d21046dac9d251ba569e",
-                            "name": "doc.md",
-                            "type": "blob",
-                            "path": "path/to/filepath/subdir/doc.md",
-                            "mode": "100644"
-                        }
-                    ]""";
+    private final String treeResponse = """
+        [
+            {
+                "id": "f15543ee98011810baba7886e443684ff34460bb",
+                "name": "subdir",
+                "type": "tree",
+                "path": "path/to/filepath/subdir",
+                "mode": "040000"
+            },
+            {
+                "id": "f15543ee98011810baba7886e443684ff34460bb",
+                "name": "subsubdir",
+                "type": "tree",
+                "path": "path/to/filepath/subdir/subsubdir",
+                "mode": "040000"
+            },
+            {
+                "id": "8fbc3cda5e3d58d102ab2661543e0769fd21ba5b",
+                "name": "swagger.yml",
+                "type": "blob",
+                "path": "path/to/filepath/swagger.yml",
+                "mode": "100644"
+            },
+            {
+                "id": "7ec4657417aae9959960d21046dac9d251ba569e",
+                "name": "doc.md",
+                "type": "blob",
+                "path": "path/to/filepath/subdir/doc.md",
+                "mode": "100644"
+            }
+        ]""";
 }

@@ -176,10 +176,8 @@ public class GitlabFetcher implements FilesFetcher {
             gitlabFetcherConfiguration.getNamespace().isEmpty() ||
             gitlabFetcherConfiguration.getProject() == null ||
             gitlabFetcherConfiguration.getProject().isEmpty() ||
-            (
-                gitlabFetcherConfiguration.isAutoFetch() &&
-                (gitlabFetcherConfiguration.getFetchCron() == null || gitlabFetcherConfiguration.getFetchCron().isEmpty())
-            )
+            (gitlabFetcherConfiguration.isAutoFetch() &&
+                (gitlabFetcherConfiguration.getFetchCron() == null || gitlabFetcherConfiguration.getFetchCron().isEmpty()))
         ) {
             throw new FetcherException("Some required configuration attributes are missing.", null);
         }
@@ -194,12 +192,9 @@ public class GitlabFetcher implements FilesFetcher {
     }
 
     private String getFetchUrl() throws FetcherException {
-        String ref =
-            (
-                (gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
-                    ? "master"
-                    : gitlabFetcherConfiguration.getBranchOrTag().trim()
-            );
+        String ref = ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
+                ? "master"
+                : gitlabFetcherConfiguration.getBranchOrTag().trim());
 
         try {
             String encodedProject = URLEncoder.encode(
@@ -241,12 +236,9 @@ public class GitlabFetcher implements FilesFetcher {
     }
 
     private String getTreeUrl() throws FetcherException {
-        String ref =
-            (
-                (gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
-                    ? "master"
-                    : gitlabFetcherConfiguration.getBranchOrTag().trim()
-            );
+        String ref = ((gitlabFetcherConfiguration.getBranchOrTag() == null || gitlabFetcherConfiguration.getBranchOrTag().trim().isEmpty())
+                ? "master"
+                : gitlabFetcherConfiguration.getBranchOrTag().trim());
 
         try {
             String encodedProject = URLEncoder.encode(
@@ -386,11 +378,11 @@ public class GitlabFetcher implements FilesFetcher {
                                         promise.fail(
                                             new FetcherException(
                                                 "Unable to fetch '" +
-                                                url +
-                                                "'. Status code: " +
-                                                response.statusCode() +
-                                                ". Message: " +
-                                                response.statusMessage(),
+                                                    url +
+                                                    "'. Status code: " +
+                                                    response.statusCode() +
+                                                    ". Message: " +
+                                                    response.statusMessage(),
                                                 null
                                             )
                                         );
