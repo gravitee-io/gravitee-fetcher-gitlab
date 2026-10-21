@@ -334,7 +334,7 @@ public class GitlabFetcher implements FilesFetcher {
 
         Proxy proxy = null;
         if (gitlabFetcherConfiguration.isUseSystemProxy()) {
-            proxy = HTTPS_SCHEME.equals(requestUri.getScheme())
+            proxy = ssl
                 ? new Proxy(
                     httpClientProxyType,
                     httpClientProxyHttpsHost,
@@ -356,7 +356,7 @@ public class GitlabFetcher implements FilesFetcher {
             GitlabFetcher::buildHttpClient
         );
 
-        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (HTTPS_SCHEME.equals(requestUri.getScheme()) ? 443 : 80);
+        final int port = requestUri.getPort() != -1 ? requestUri.getPort() : (ssl ? 443 : 80);
 
         try {
             String pathAndQuery = requestUri.getRawPath() + (requestUri.getRawQuery() != null ? "?" + requestUri.getRawQuery() : "");
