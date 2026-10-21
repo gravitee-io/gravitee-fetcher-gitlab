@@ -26,12 +26,15 @@ import io.gravitee.fetcher.api.FetcherException;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpClient;
 import io.vertx.core.internal.VertxInternal;
+import io.vertx.core.net.NetServer;
 import java.lang.reflect.Field;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -101,6 +104,38 @@ class GitlabFetcher_HttpClientTest {
         fetcher("/path/to/file", 5_000).fetch();
 
         assertThat(registeredHttpClients()).isEqualTo(2);
+    }
+
+    @Test
+    @Timeout(value = 10, unit = TimeUnit.SECONDS)
+    void should_use_https_proxy_and_port_for_an_upper_case_https_scheme() throws Exception {
+        CompletableFuture<String> proxyRequestLine = new CompletableFuture<>();
+        NetServer httpsProxy = vertx
+            .createNetServer()
+            .connectHandler(socket ->
+                socket.handler(buffer -> {
+                    proxyRequestLine.complete(buffer.toString().lines().findFirst().orElse(""));
+                    socket.close();
+                })
+            )
+            .listen(0)
+            .toCompletionStage()
+            .toCompletableFuture()
+            .get(10, TimeUnit.SECONDS);
+
+        GitlabFetcher fetcher = fetcher("/path/to/file", 5_000);
+        GitlabFetcherConfiguration config = (GitlabFetcherConfiguration) fetcher.getConfiguration();
+        config.setGitlabUrl("HTTPS://gravitee.invalid/api/v3");
+        config.setUseSystemProxy(true);
+        ReflectionTestUtils.setField(fetcher, "httpClientProxyType", "HTTP");
+        ReflectionTestUtils.setField(fetcher, "httpClientProxyHttpHost", "localhost");
+        // Nothing listens there: picking the HTTP proxy fails without reaching the HTTPS one.
+        ReflectionTestUtils.setField(fetcher, "httpClientProxyHttpPort", 1);
+        ReflectionTestUtils.setField(fetcher, "httpClientProxyHttpsHost", "localhost");
+        ReflectionTestUtils.setField(fetcher, "httpClientProxyHttpsPort", httpsProxy.actualPort());
+
+        assertThatThrownBy(fetcher::fetch).isInstanceOf(FetcherException.class);
+        assertThat(proxyRequestLine.get(5, TimeUnit.SECONDS)).startsWith("CONNECT gravitee.invalid:443 ");
     }
 
     /**
