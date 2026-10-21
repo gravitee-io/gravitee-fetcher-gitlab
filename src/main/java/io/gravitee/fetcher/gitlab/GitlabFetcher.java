@@ -429,7 +429,11 @@ public class GitlabFetcher implements FilesFetcher {
     private Future<Buffer> handleResponse(String url, HttpClientResponse response) {
         if (response.statusCode() == HttpStatusCode.OK_200) {
             return response.body();
-        } else if (response.statusCode() == HttpStatusCode.NOT_FOUND_404) {
+        }
+        // The body is not read: reset the request so a slowly streamed error page does not keep the connection,
+        // which the shared pool needs back.
+        response.request().reset();
+        if (response.statusCode() == HttpStatusCode.NOT_FOUND_404) {
             return Future.failedFuture(new ResourceNotFoundException(buildNotFoundMessage(url), null));
         } else {
             return Future.failedFuture(

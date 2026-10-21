@@ -138,6 +138,33 @@ class GitlabFetcher_HttpClientTest {
         assertThat(proxyRequestLine.get(5, TimeUnit.SECONDS)).startsWith("CONNECT gravitee.invalid:443 ");
     }
 
+    @Test
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    void should_release_the_connection_of_a_404_response_without_waiting_for_its_body() throws Exception {
+        should_release_the_connection_of_a_non_200_response_without_waiting_for_its_body(404);
+    }
+
+    @Test
+    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    void should_release_the_connection_of_a_500_response_without_waiting_for_its_body() throws Exception {
+        should_release_the_connection_of_a_non_200_response_without_waiting_for_its_body(500);
+    }
+
+    private void should_release_the_connection_of_a_non_200_response_without_waiting_for_its_body(int status) throws Exception {
+        wiremock.stubFor(
+            get(urlEqualTo("/api/v3/projects/namespace%2Fproject/repository/files?file_path=/slow-error&ref=sha1")).willReturn(
+                aResponse().withStatus(status).withBody("x".repeat(200_000)).withChunkedDribbleDelay(100, 20_000)
+            )
+        );
+
+        // Enough failures to take every connection of the pool if their bodies kept them busy.
+        for (int i = 0; i < 20; i++) {
+            assertThatThrownBy(fetcher("/slow-error", 3_000)::fetch).isInstanceOf(FetcherException.class);
+        }
+
+        assertThat(fetcher("/path/to/file", 3_000).fetch().getContent()).isNotNull();
+    }
+
     /**
      * Vert.x keeps every client it creates in the private {@code children} map of its owner's close future, and
      * only releases them when that owner closes. Counting them is the only way to observe from a test that a
